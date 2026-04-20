@@ -1,65 +1,126 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import BusinessForm from "@/features/form/insert-data";
+import { useBusinessMutations } from "@/hooks/use-business-mutation";
+import { BusinessLocation, BusinessFormValues } from "@/types/business";
+import BusinessTable from "@/features/table/locations-table";
+import { X, Plus } from "lucide-react";
+
+export default function BusinessDashboard() {
+  // State for drawer visibility and tracking the selected record
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<BusinessLocation | null>(null);
+
+  const { createBusiness, updateBusiness, isCreating, isUpdating } = useBusinessMutations();
+
+  // Reset state and open drawer for creation
+  const handleAddNew = () => {
+    setSelectedBusiness(null);
+    setIsDrawerOpen(true);
+  };
+
+  // Set selected record and open drawer for editing
+  const handleEditClick = (business: BusinessLocation) => {
+    setSelectedBusiness(business);
+    setIsDrawerOpen(true);
+  };
+
+
+  const handleFormSubmit = async (data: BusinessFormValues) => {
+    try {
+      if (selectedBusiness?.id) {
+        // FIX: Wrap the fields in the 'data' property as required by your mutation hook
+        await updateBusiness({
+          id: selectedBusiness.id,
+          data: data
+        });
+      } else {
+        await createBusiness(data);
+      }
+      setIsDrawerOpen(false);
+      setSelectedBusiness(null);
+    } catch (error) {
+      console.error("Submission failed:", error);
+    }
+  };
+
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="relative min-h-screen bg-slate-50 p-4 md:p-8">
+      {/* Dashboard Header */}
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Business Locations
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-slate-500 text-sm">
+            Manage and monitor your automated mapping system data.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        <button
+          onClick={handleAddNew}
+          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
+        >
+          <Plus size={20} />
+          <span>Add New Business</span>
+        </button>
+      </div>
+
+      {/* Main Table Content */}
+      <main className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <BusinessTable onEdit={handleEditClick} />
       </main>
+
+      {/* Slide-out Drawer Component */}
+      <div
+        className={`fixed inset-0 z-50 transition-all duration-300 ${isDrawerOpen ? "visible" : "invisible"
+          }`}
+      >
+        {/* Semi-transparent Backdrop */}
+        <div
+          className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${isDrawerOpen ? "opacity-100" : "opacity-0"
+            }`}
+          onClick={() => setIsDrawerOpen(false)}
+        />
+
+        {/* Form Panel */}
+        <aside
+          className={`absolute right-0 top-0 h-full w-full max-w-lg bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${isDrawerOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+        >
+
+          <div className="flex flex-col h-full">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">
+                  {selectedBusiness ? "Edit Location" : "New Location"}
+                </h2>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mt-1">
+                  {selectedBusiness ? "Database Entry ID: " + selectedBusiness.id.slice(0, 8) : "Enter Business Details"}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="text-slate-400 hover:text-slate-900 p-2 hover:bg-slate-100 rounded-full transition-all cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Form Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+              <BusinessForm
+                key={selectedBusiness?.id || 'new'}
+                onSubmit={handleFormSubmit}
+                isLoading={isCreating || isUpdating}
+                defaultValues={selectedBusiness || undefined}
+              />
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
