@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BusinessSchema, BusinessFormValues } from "@/types/business";
 import BusinessFormFields from "./form-fields/insert-fields";
-import UpdateConfirmModal from "../component/modal/update-confirm-modal";
+import UpdateConfirmModal from "../components/modal/update-confirm-modal";
 
 interface BusinessFormProps {
   onSubmit: (data: BusinessFormValues) => Promise<void>;
@@ -27,21 +27,38 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues }: Bus
   useEffect(() => {
     methods.reset(defaultValues || {});
   }, [defaultValues, methods]);
-  
+
 
   /**
    * handlePreSubmit intercepts the standard form submission.
    * If we are in "Edit Mode", it opens the confirmation modal.
    * If we are in "Add Mode", it proceeds directly to the onSubmit.
    */
-  const handleFormSubmit = (data: BusinessFormValues) => {
+  // const handleFormSubmit = (data: BusinessFormValues) => {
+  //   const isEditMode = !!defaultValues?.businessName;
+
+  //   if (isEditMode) {
+  //     setPendingData(data);
+  //     setShowUpdateModal(true);
+  //   } else {
+  //     onSubmit(data);
+  //   }
+  // };
+
+
+
+  const handleFormSubmit = async (data: BusinessFormValues) => {
     const isEditMode = !!defaultValues?.businessName;
 
     if (isEditMode) {
       setPendingData(data);
       setShowUpdateModal(true);
     } else {
-      onSubmit(data);
+      // 1. Wait for the database submission to complete
+      await onSubmit(data);
+
+      // 2. Explicitly reset the form to empty values
+      methods.reset();
     }
   };
 
@@ -57,7 +74,7 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues }: Bus
     <FormProvider {...methods}>
       <form
         onSubmit={methods.handleSubmit(handleFormSubmit)}
-        className="space-y-6 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200"
+        className="space-y-6 bg-white"
       >
         <BusinessFormFields
           isLoading={isLoading}

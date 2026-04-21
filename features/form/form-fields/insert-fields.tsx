@@ -4,6 +4,9 @@ import React from "react";
 import { useFormContext } from "react-hook-form";
 import { BusinessFormValues } from "@/types/business";
 
+// This import is for image upload
+// import ImageUpload from "./image-upload";
+// import { Controller } from "react-hook-form";
 
 // 1. Add isEditing to the interface
 interface FieldsProps {
@@ -16,6 +19,8 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
     register,
     formState: { errors },
   } = useFormContext<BusinessFormValues>();
+
+  // const { control, setValue } = useFormContext();
 
   return (
     <>
@@ -39,7 +44,7 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
             {...register("email")}
             type="email"
             className={`p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.email ? 'border-red-500' : 'border-slate-300'}`}
-            placeholder="contact@business.com"
+            placeholder="info@knockerball.com"
           />
           {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>}
         </div>
@@ -50,7 +55,7 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
           <input
             {...register("phone")}
             className={`p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.phone ? 'border-red-500' : 'border-slate-300'}`}
-            placeholder="+63 912 345 6789"
+            placeholder="800-583-7250"
           />
           {errors.phone && <span className="text-red-500 text-xs mt-1">{errors.phone.message}</span>}
         </div>
@@ -72,7 +77,7 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
           <input
             {...register("address")}
             className={`p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.address ? 'border-red-500' : 'border-slate-300'}`}
-            placeholder="123 Innovation St, Du, Philippines"
+            placeholder="P.O. Box 342112 Kailua, HI 96734"
           />
           {errors.address && <span className="text-red-500 text-xs mt-1">{errors.address.message}</span>}
         </div>
@@ -81,10 +86,13 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Latitude</label>
           <input
-            {...register("latitude")}
+            {...register("latitude", {
+              setValueAs: (v) => (v === "" ? undefined : parseFloat(v))
+            })}
             type="number"
             step="any"
             className={`p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.latitude ? 'border-red-500' : 'border-slate-300'}`}
+            placeholder="e.g. 40.741895"
           />
           {errors.latitude && <span className="text-red-500 text-xs mt-1">{errors.latitude.message}</span>}
         </div>
@@ -93,10 +101,13 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Longitude</label>
           <input
-            {...register("longitude")}
+            {...register("longitude", {
+              setValueAs: (v) => (v === "" ? undefined : parseFloat(v))
+            })}
             type="number"
             step="any"
             className={`p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.longitude ? 'border-red-500' : 'border-slate-300'}`}
+            placeholder="e.g. -73.989308"
           />
           {errors.longitude && <span className="text-red-500 text-xs mt-1">{errors.longitude.message}</span>}
         </div>
@@ -107,7 +118,7 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
           <input
             {...register("websiteUrl")}
             className={`p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.websiteUrl ? 'border-red-500' : 'border-slate-300'}`}
-            placeholder="https://yourwebsite.com"
+            placeholder="https://knockerball.com/"
           />
           {errors.websiteUrl && <span className="text-red-500 text-xs mt-1">{errors.websiteUrl.message}</span>}
         </div>
@@ -122,6 +133,23 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
           />
           {errors.contentUrl && <span className="text-red-500 text-xs mt-1">{errors.contentUrl.message}</span>}
         </div>
+
+        {/* This field is for image upload */}
+        {/* <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2">Business Image</label>
+          <Controller
+            name="imageUrl"
+            control={control}
+            render={({ field }) => (
+              <ImageUpload
+                value={field.value}
+                onChange={(url) => field.onChange(url)}
+                onRemove={() => field.onChange("")}
+              />
+            )}
+          />
+        </div> */}
+
       </div>
 
       <div className="pt-4">

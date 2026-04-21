@@ -5,8 +5,8 @@ export interface BusinessLocation {
     address: string;
     email: string;
     imageUrl: string;
-    latitude: string;
-    longitude: string;
+    latitude: number;
+    longitude: number;
     websiteUrl: string;
     contentUrl: string;
     createdAt: any; // Firestore Timestamp
