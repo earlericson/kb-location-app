@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, useWatch, useFormState } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BusinessSchema, BusinessFormValues } from "@/types/business";
 import BusinessFormFields from "./form-fields/insert-fields";
 import UpdateConfirmModal from "../components/modal/update-confirm-modal";
+
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
+import { getCoordinates } from "@/lib/geocoding";
 
 interface BusinessFormProps {
   onSubmit: (data: BusinessFormValues) => Promise<void>;
@@ -20,7 +23,12 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues }: Bus
 
   const methods = useForm<BusinessFormValues>({
     resolver: zodResolver(BusinessSchema),
-    defaultValues: defaultValues || {},
+    mode: "onChange",
+    defaultValues: defaultValues || {
+      address: "",
+      latitude: 0,
+      longitude: 0
+    },
   });
 
   // Reset form when defaultValues changes (switching between Edit/Add)
@@ -28,23 +36,35 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues }: Bus
     methods.reset(defaultValues || {});
   }, [defaultValues, methods]);
 
+  // Disable/Enable button in the form
+  const { isValid } = methods.formState;
 
-  /**
-   * handlePreSubmit intercepts the standard form submission.
-   * If we are in "Edit Mode", it opens the confirmation modal.
-   * If we are in "Add Mode", it proceeds directly to the onSubmit.
-   */
-  // const handleFormSubmit = (data: BusinessFormValues) => {
-  //   const isEditMode = !!defaultValues?.businessName;
 
-  //   if (isEditMode) {
-  //     setPendingData(data);
-  //     setShowUpdateModal(true);
-  //   } else {
-  //     onSubmit(data);
-  //   }
-  // };
+  // Geocoding Map
+  const { control, setValue } = methods;
 
+  // Define watchedAddress using the control
+  const watchedAddress = useWatch({
+    control,
+    name: "address", // Make sure this matches the key in your BusinessSchema
+  });
+
+  const { dirtyFields } = useFormState({ control });
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      // Only auto-populate if the address is "dirty" (the user just changed it)
+      if (watchedAddress && dirtyFields.address && !dirtyFields.latitude) {
+        const coords = await getCoordinates(watchedAddress);
+        if (coords) {
+          setValue("latitude", coords.latitude, { shouldValidate: true, shouldDirty: true });
+          setValue("longitude", coords.longitude, { shouldValidate: true, shouldDirty: true });
+        }
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [watchedAddress, dirtyFields.address, dirtyFields.latitude, setValue]);
 
 
   const handleFormSubmit = async (data: BusinessFormValues) => {

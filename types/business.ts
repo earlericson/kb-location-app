@@ -6,7 +6,7 @@ export const BusinessSchema = z.object({
   phone: z.string().min(5, "Valid phone number required"),
   address: z.string().min(5, "Address is required"),
   email: z.string().email("Invalid email address"),
-  imageUrl: z.string().url("Invalid image URL"),
+  imageUrl: z.string().min(1, "Please upload a business image"),
   // latitude: z.string().min(5, "latitude required"),
   // longitude: z.string().min(5, "longitude required"),
   // latitude: z.coerce.number().min(-90).max(90),   // Coerces string to number

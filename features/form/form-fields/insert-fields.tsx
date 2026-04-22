@@ -3,10 +3,7 @@
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { BusinessFormValues } from "@/types/business";
-
-// This import is for image upload
-// import ImageUpload from "./image-upload";
-// import { Controller } from "react-hook-form";
+import { ImageUpload } from "./image-upload";
 
 // 1. Add isEditing to the interface
 interface FieldsProps {
@@ -17,15 +14,12 @@ interface FieldsProps {
 export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps) {
   const {
     register,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useFormContext<BusinessFormValues>();
-
-  // const { control, setValue } = useFormContext();
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         {/* Business Name */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Business Name</label>
@@ -36,7 +30,9 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
           />
           {errors.businessName && <span className="text-red-500 text-xs mt-1">{errors.businessName.message}</span>}
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Email */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Email Address</label>
@@ -61,7 +57,7 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
         </div>
 
         {/* Image URL */}
-        <div className="flex flex-col gap-1.5">
+        {/* <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Image URL</label>
           <input
             {...register("imageUrl")}
@@ -69,7 +65,7 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
             placeholder="https://example.com/photo.jpg"
           />
           {errors.imageUrl && <span className="text-red-500 text-xs mt-1">{errors.imageUrl.message}</span>}
-        </div>
+        </div> */}
 
         {/* Address - Spans 2 columns */}
         <div className="flex flex-col gap-1.5 md:col-span-2">
@@ -133,31 +129,22 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
           />
           {errors.contentUrl && <span className="text-red-500 text-xs mt-1">{errors.contentUrl.message}</span>}
         </div>
-
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         {/* This field is for image upload */}
-        {/* <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">Business Image</label>
-          <Controller
-            name="imageUrl"
-            control={control}
-            render={({ field }) => (
-              <ImageUpload
-                value={field.value}
-                onChange={(url) => field.onChange(url)}
-                onRemove={() => field.onChange("")}
-              />
-            )}
-          />
-        </div> */}
-
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-slate-700">Image</label>
+          <ImageUpload />
+        </div>
       </div>
 
       <div className="pt-4">
         <button
           type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3.5 rounded-lg transition-colors shadow-md shadow-blue-100 flex items-center justify-center gap-2"
-        >
+          disabled={isLoading || !isValid}
+          className={!isValid ? "w-full disabled:bg-blue-300 text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2"
+            : "w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3.5 rounded-lg transition-colors shadow-md shadow-blue-100 flex items-center justify-center gap-2"}>
           {isLoading
             ? "Processing..."
             : isEditing

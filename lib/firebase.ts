@@ -1,7 +1,7 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-// import { getStorage } from "firebase/storage";
+import { getStorage } from "firebase/storage";
 
 // These values are pulled from your .env.local (and Vercel settings)
 const firebaseConfig = {
@@ -21,4 +21,4 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
 // For Image upload only
-// export const storage = getStorage(app);
+export const storage = getStorage(app);

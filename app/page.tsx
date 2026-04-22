@@ -59,7 +59,7 @@ export default function BusinessDashboard() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Business Locations
+            Knockerball Locations
           </h1>
           <p className="text-slate-500 text-sm">
             Manage and monitor your automated mapping system data.
