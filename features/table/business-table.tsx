@@ -287,7 +287,7 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
                 isLoading={isDeleting}
-                title="Delete Business?"
+                title="Delete This Location?"
                 message="This action cannot be undone. This business and its map marker will be permanently removed from the database."
             />
         </div>

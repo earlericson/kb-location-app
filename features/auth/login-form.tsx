@@ -51,9 +51,9 @@ export const LoginForm = () => {
         <div className="bg-blue-50 p-4 rounded-full mb-4">
           <Lock className="text-blue-600" size={28} />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Portal</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Knockerball Map</h1>
         <p className="text-gray-500 text-sm mt-1 text-center">
-          Sign in to manage your business directory
+          Sign in to manage all knockerball locations.
         </p>
       </div>
 
@@ -114,11 +114,11 @@ export const LoginForm = () => {
       </form>
 
       {/* Footer Info */}
-      <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+      {/* <div className="mt-8 pt-6 border-t border-gray-100 text-center">
         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-medium">
-          Secure Environment
+          Forgot Password?
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -7,7 +7,7 @@ export interface BusinessLocation {
     imageUrl: string;
     latitude: number;
     longitude: number;
-    websiteUrl: string;
-    contentUrl: string;
+    websiteUrl?: string;   // Added '?' to make it optional
+    contentUrl?: string;   // Added '?' to make it optional
     createdAt: any; // Firestore Timestamp
 }

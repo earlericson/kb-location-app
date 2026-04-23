@@ -17,8 +17,10 @@ export const BusinessSchema = z.object({
   longitude: z.number({ message: "Longitude is required" })
     .min(-180)
     .max(180),
-  websiteUrl: z.string().url("Invalid website URL"),
-  contentUrl: z.string().url("Invalid content URL"),
+  // .optional() allows it to be missing
+  // .or(z.literal("")) allows the input to be an empty string without error
+  websiteUrl: z.string().url("Invalid website URL").optional().or(z.literal("")),
+  contentUrl: z.string().url("Invalid content URL").optional().or(z.literal("")),
 });
 
 // 2. The Form Values Type (Inferred from Schema)

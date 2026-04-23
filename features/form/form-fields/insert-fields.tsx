@@ -153,8 +153,8 @@ export default function BusinessFormFields({ isLoading, isEditing, businessId, i
           {isLoading
             ? "Processing..."
             : isEditing
-              ? "Update Business Details"
-              : "Save Business Details"
+              ? "Update Location Details"
+              : "Save Location Details"
           }
         </button>
       </div>
