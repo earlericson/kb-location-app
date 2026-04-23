@@ -1,5 +1,6 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -22,3 +23,7 @@ export const db = getFirestore(app);
 
 // For Image upload only
 export const storage = getStorage(app);
+
+
+// Login
+export const auth = getAuth(app);

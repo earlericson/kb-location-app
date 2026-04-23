@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/providers/query-provider";
 import { GoogleMapsProvider } from "@/features/providers/google-maps-provider";
+import { AuthProvider } from "@/context/auth-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +32,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {/* Everything inside these tags can now use useBusinessMutations */}
+
         <QueryProvider>
           <GoogleMapsProvider>
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
           </GoogleMapsProvider>
         </QueryProvider>
       </body>

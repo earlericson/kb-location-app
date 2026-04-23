@@ -9,14 +9,16 @@ import UpdateConfirmModal from "../components/modal/update-confirm-modal";
 
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { getCoordinates } from "@/lib/geocoding";
+import { ImageUpload } from "./form-fields/image-upload";
 
 interface BusinessFormProps {
   onSubmit: (data: BusinessFormValues) => Promise<void>;
   isLoading: boolean;
   defaultValues?: Partial<BusinessFormValues>;
+  businessId?: string;
 }
 
-export default function BusinessForm({ onSubmit, isLoading, defaultValues }: BusinessFormProps) {
+export default function BusinessForm({ onSubmit, isLoading, defaultValues, businessId }: BusinessFormProps) {
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [pendingData, setPendingData] = useState<BusinessFormValues | null>(null);
@@ -27,7 +29,8 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues }: Bus
     defaultValues: defaultValues || {
       address: "",
       latitude: 0,
-      longitude: 0
+      longitude: 0,
+      imageUrl: ""
     },
   });
 
@@ -99,6 +102,7 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues }: Bus
         <BusinessFormFields
           isLoading={isLoading}
           isEditing={!!defaultValues?.businessName}
+          businessId={businessId}
         />
       </form>
 

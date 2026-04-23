@@ -9,9 +9,11 @@ import { ImageUpload } from "./image-upload";
 interface FieldsProps {
   isLoading: boolean;
   isEditing: boolean;
+  businessId?: string;
+  initialImageUrl?: string;
 }
 
-export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps) {
+export default function BusinessFormFields({ isLoading, isEditing, businessId, initialImageUrl }: FieldsProps) {
   const {
     register,
     formState: { errors, isValid },
@@ -130,12 +132,15 @@ export default function BusinessFormFields({ isLoading, isEditing }: FieldsProps
           {errors.contentUrl && <span className="text-red-500 text-xs mt-1">{errors.contentUrl.message}</span>}
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         {/* This field is for image upload */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Image</label>
-          <ImageUpload />
+          <ImageUpload 
+          businessId={businessId}  
+          // initialImageUrl={defaultValues?.imageUrl}
+          />
         </div>
       </div>
 

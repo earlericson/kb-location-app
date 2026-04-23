@@ -2,13 +2,19 @@
 
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { storage } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { UploadCloud, X, Loader2 } from "lucide-react";
 // 1. Import the compression library
 import imageCompression from "browser-image-compression";
+import { doc, updateDoc } from "firebase/firestore";
 
-export const ImageUpload = () => {
+interface ImageUploadProps {
+  businessId?: string;
+  initialImageUrl?: string; // Add this prop
+}
+
+export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) => {
     const { setValue, watch, formState: { errors } } = useFormContext();
     const [isUploading, setIsUploading] = useState(false);
 
@@ -31,14 +37,13 @@ export const ImageUpload = () => {
 
             console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
 
-
             // 3. Perform Compression & Conversion
             const compressedFile = await imageCompression(file, options);
 
             console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
 
             // 4. Create Firebase Ref with .webp extension
-            const fileName = `kb-map/${Date.now()}.webp`;
+            const fileName = `businesses/${Date.now()}.webp`;
             const storageRef = ref(storage, fileName);
 
             // 5. Upload to Firebase
@@ -59,15 +64,64 @@ export const ImageUpload = () => {
     };
 
     // Remove uploaded image
+    // const handleRemove = async () => {
+    //     if (!imageUrl) return;
+
+    //     try {
+    //         // This physically deletes it from the bucket immediately
+    //         const fileRef = ref(storage, imageUrl);
+    //         await deleteObject(fileRef);
+
+    //         setValue("imageUrl", "", { shouldValidate: true, shouldDirty: true });
+    //     } catch (error) {
+    //         console.error("Cleanup failed", error);
+    //     }
+    // };
+
+
+    // Remove uploaded image and update Firestore instantly
+    // const handleRemove = async () => {
+    //     if (!imageUrl) return;
+
+    //     try {
+    //         // 1. Physically delete from Storage
+    //         const fileRef = ref(storage, imageUrl);
+    //         await deleteObject(fileRef);
+
+    //         // 2. Clear the local form state
+    //         setValue("imageUrl", "", { shouldValidate: true, shouldDirty: true });
+
+    //         // Update Firestore instantly if we have an ID
+    //         if (businessId) {
+    //             const businessRef = doc(db, "businesses", businessId);
+    //             await updateDoc(businessRef, {
+    //                 imageUrl: ""
+    //             });
+    //         }
+    //     } catch (error) {
+    //         console.error("Cleanup failed", error);
+    //     }
+    // };
+
     const handleRemove = async () => {
         if (!imageUrl) return;
 
         try {
-            // This physically deletes it from the bucket immediately
+            // Storage deletion
             const fileRef = ref(storage, imageUrl);
             await deleteObject(fileRef);
 
+            // Local UI update
             setValue("imageUrl", "", { shouldValidate: true, shouldDirty: true });
+
+            // DATABASE UPDATE
+            if (businessId) {
+                const businessRef = doc(db, "businesses", businessId);
+                await updateDoc(businessRef, { imageUrl: "" });
+                console.log("Firestore synced successfully");
+            }
+
+            console.log(`Business ID:`, {businessId})
         } catch (error) {
             console.error("Cleanup failed", error);
         }
@@ -90,9 +144,9 @@ export const ImageUpload = () => {
                         </div>
                     ) : (
                         <label className={`w-full h-40 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 transition-all group ${errors.imageUrl ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:bg-gray-50'}`}>
-                            {isUploading ? <Loader2 className="h-8 w-8 text-blue-500 animate-spin" /> : <UploadCloud className="text-gray-400" />}
+                            {isUploading ? <Loader2 className="h-8 w-8 text-blue-500 animate-spin" /> : <UploadCloud className="text-slate-500" />}
                             <span className="text-[10px] mt-2 font-medium text-gray-500 text-center">
-                                {isUploading ? "Uploading..." : <span className="text-[10px] font-medium text-gray-500 text-center">Upload Image<br/>(PNG, JPG, HEIC)</span>}
+                                {isUploading ? "Uploading..." : <span className="text-[10px] font-medium text-slate-500 text-center">Upload Image<br />(PNG, JPG, HEIC)</span>}
                             </span>
                             <input type="file" className="hidden" onChange={handleUpload} accept="image/*" disabled={isUploading} />
                         </label>
