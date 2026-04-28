@@ -34,6 +34,19 @@ export default function BusinessFormFields({ isLoading, isEditing, businessId, i
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+        {/* Business Owner */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-slate-700">Business Owner</label>
+          <input
+            {...register("businessOwner")}
+            className={`p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${errors.businessOwner ? 'border-red-500' : 'border-slate-300'}`}
+            placeholder="e.g. Quinn"
+          />
+          {errors.businessOwner && <span className="text-red-500 text-xs mt-1">{errors.businessOwner.message}</span>}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Email */}
         <div className="flex flex-col gap-1.5">

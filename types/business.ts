@@ -2,7 +2,8 @@ import { z } from "zod";
 
 // 1. The Schema (For Form Validation & Coercion)
 export const BusinessSchema = z.object({
-  businessName: z.string().min(2, "Name is required"),
+  businessName: z.string().min(2, "Business Name is required"),
+  businessOwner: z.string().min(2, "Business Owner is required"),
   phone: z.string().min(5, "Valid phone number required"),
   address: z.string().min(5, "Address is required"),
   email: z.string().email("Invalid email address"),
