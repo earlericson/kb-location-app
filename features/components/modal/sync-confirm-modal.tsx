@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, AlertCircle, X } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 interface SyncModalProps {
     isOpen: boolean;
@@ -38,7 +38,7 @@ export const SyncModal = ({ isOpen, onClose, onConfirm, isLoading }: SyncModalPr
                     <button
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className="px-6 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                        className="flex px-6 py-2 gap-1 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                     >
                         {isLoading ? (
                             <>

@@ -5,7 +5,12 @@ import { MapContainer } from "./map";
 import { Search, MapPin, Phone, Mail } from "lucide-react";
 import { BusinessLocation } from "@/types";
 
-export default function MapMain({ initialData }: { initialData: BusinessLocation[] }) {
+interface MapMainProps {
+    initialData: BusinessLocation[]
+}
+
+
+export default function MapMain({ initialData }: MapMainProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedLocation, setSelectedLocation] = useState<BusinessLocation | null>(null);
 
@@ -16,6 +21,7 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
             b.address?.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [searchQuery, initialData]);
+
 
     return (
         // <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] w-full overflow-hidden bg-gray-50">
@@ -137,9 +143,10 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
             {/* RIGHT COLUMN: The Map */}
             <div className="flex-1 relative bg-gray-100">
                 <MapContainer
-                    businessloc={filteredBusinesses}
+                    businessloc={initialData}
                     selectedLocation={selectedLocation}
-                    onMarkerClick={(b) => setSelectedLocation(b)}
+                    // onMarkerClick={(b) => setSelectedLocation(b)}
+                    onMarkerClick={setSelectedLocation}
                 />
             </div>
 

@@ -22,6 +22,8 @@ export const BusinessSchema = z.object({
   // .or(z.literal("")) allows the input to be an empty string without error
   websiteUrl: z.string().url("Invalid website URL").optional().or(z.literal("")),
   contentUrl: z.string().url("Invalid content URL").optional().or(z.literal("")),
+  // status: z.string().catch,
+  status: z.enum(["draft", "published"]).catch("draft"),
 });
 
 // 2. The Form Values Type (Inferred from Schema)

@@ -150,8 +150,8 @@ export default function BusinessFormFields({ isLoading, isEditing, businessId, i
         {/* This field is for image upload */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-semibold text-slate-700">Image</label>
-          <ImageUpload 
-          businessId={businessId}  
+          <ImageUpload
+            businessId={businessId}
           // initialImageUrl={defaultValues?.imageUrl}
           />
         </div>

@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "@/providers/query-provider";
 import { GoogleMapsProvider } from "@/features/providers/google-maps-provider";
 import { AuthProvider } from "@/context/auth-context";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
           <GoogleMapsProvider>
             <AuthProvider>
               {children}
+              <Toaster position="bottom-center" reverseOrder={false} />
             </AuthProvider>
           </GoogleMapsProvider>
         </QueryProvider>

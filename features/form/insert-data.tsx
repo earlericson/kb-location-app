@@ -30,7 +30,8 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues, busin
       address: "",
       latitude: 0,
       longitude: 0,
-      imageUrl: ""
+      imageUrl: "",
+      status: "draft"
     },
   });
 

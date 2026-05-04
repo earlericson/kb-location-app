@@ -5,13 +5,15 @@ import BusinessForm from "@/features/form/insert-data";
 import { useBusinessMutations } from "@/hooks/use-business-mutation";
 import { BusinessLocation, BusinessFormValues } from "@/types/business";
 import BusinessTable from "@/features/table/business-table";
-import { X, Plus, RefreshCcw } from "lucide-react";
+import { X, Plus, RefreshCcw, Info, InfoIcon } from "lucide-react";
 import BusinessDrawer from "@/features/components/drawer/business-drawer";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { LogoutButton } from "@/features/auth/logout-btn";
 import { SyncModal } from "@/features/components/modal/sync-confirm-modal";
+import { collection, getDocs, onSnapshot, query, where, writeBatch } from "firebase/firestore";
+import toast from "react-hot-toast";
 
 export default function BusinessDashboard() {
   const router = useRouter();
@@ -45,22 +47,102 @@ export default function BusinessDashboard() {
     setIsDrawerOpen(true);
   };
 
-  // Open sync popup modal
+  // const handleStartSync = async () => {
+  //   setIsSyncing(true); // Start spinning
+
+  //   const syncAction = async () => {
+  //     // We do NOT use a try/catch here because toast.promise 
+  //     // needs the error to "bubble up" to trigger the error toast.
+  //     const q = query(collection(db, "locations"), where("status", "==", "draft"));
+  //     const snapshot = await getDocs(q);
+
+  //     if (snapshot.empty) {
+  //       throw new Error("Nothing to sync! All data is already live.");
+  //     }
+
+  //     const batch = writeBatch(db);
+  //     snapshot.forEach((doc) => {
+  //       batch.update(doc.ref, { status: "published" });
+  //     });
+
+  //     return await batch.commit();
+  //   };
+
+  //   try {
+  //     // We await the toast.promise
+  //     await toast.promise(syncAction(), {
+  //       loading: 'Publishing changes...',
+  //       success: 'Map updated successfully!',
+  //       error: (err) => `${err.message}`,
+  //     });
+  //   } catch (error: any) {
+  //     // --- THE FIX: FILTER THE CONSOLE LOG ---
+  //     if (error.message !== "Nothing to sync! All data is already live.") {
+  //       // Only log if it's a REAL error (Firestore, Network, etc.)
+  //       console.error("Actual Sync Error:", error);
+  //     }
+  //   }
+
+  //   // --- THE FIX IS HERE ---
+  //   // These run AFTER the toast is done, even if it threw an error.
+  //   setIsSyncing(false);
+  //   setIsSyncModalOpen(false);
+  // };
+
+
+
   const handleStartSync = async () => {
     setIsSyncing(true);
 
     try {
-      // Your Firebase/Apps Script polling logic goes here
-      // await performSyncTask(); 
+      const q = query(collection(db, "locations"), where("status", "==", "draft"));
+      const snapshot = await getDocs(q);
 
-      console.log("Sync Complete!");
-      setIsSyncModalOpen(false); // Close after success
-    } catch (error) {
-      console.error("Sync failed", error);
+      if (snapshot.empty) {
+        // Use a plain toast or info toast instead of error
+        toast('No new changes to sync.', { icon: <Info size={18} /> });
+        setIsSyncModalOpen(false);
+        setIsSyncing(false);
+        return;
+      }
+
+      const batch = writeBatch(db);
+      snapshot.forEach((doc) => {
+        batch.update(doc.ref, { status: "published" });
+      });
+
+      await batch.commit();
+
+      // Show success ONLY after completion
+      toast.success('Map updated successfully!');
+
+    } catch (error: any) {
+      console.error("Sync Error:", error);
+      toast.error("Failed to sync changes.");
     } finally {
+      // Cleanup UI states
       setIsSyncing(false);
+      setIsSyncModalOpen(false);
     }
   };
+
+  // Counting the draft data
+  const [draftCount, setDraftCount] = useState(0);
+
+  // Use a listener to keep the count updated automatically
+  useEffect(() => {
+    const q = query(collection(db, "locations"), where("status", "==", "draft"));
+
+    // onSnapshot is better than getDocs here because it updates the button 
+    // immediately if you add a new location in another tab
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setDraftCount(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
 
   // Set selected record and open drawer for editing
   const handleEditClick = (business: BusinessLocation) => {
@@ -126,10 +208,16 @@ export default function BusinessDashboard() {
                 {/* Button 2: Sync */}
                 <button
                   onClick={() => setIsSyncModalOpen(true)}
-                  className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
+                  disabled={draftCount === 0 || isSyncing}
+                  // onClick={handleSyncData}
+                  className={`flex items-center justify-center gap-2  px-5 py-2.5 rounded-lg font-semibold transition-all
+                    ${draftCount === 0
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                      : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-95 cursor-pointer"
+                    }`}
                 >
                   <RefreshCcw size={20} />
-                  <span>Sync</span>
+                  <span>Sync All</span>
                 </button>
 
                 {/* Button 3: Logout */}

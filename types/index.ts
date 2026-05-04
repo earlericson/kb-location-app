@@ -11,4 +11,5 @@ export interface BusinessLocation {
     websiteUrl?: string;   // Added '?' to make it optional
     contentUrl: string;   // Added '?' to make it optional
     createdAt: any; // Firestore Timestamp
+    status: 'draft' | 'published';
 }

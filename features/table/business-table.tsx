@@ -16,9 +16,13 @@ import {
     ChevronRight,
     Phone,
     Mail,
-    MapPin
+    MapPin,
+    RefreshCcw
 } from "lucide-react";
 import TableImage from "../components/table/table-image";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import toast from "react-hot-toast";
 
 interface BusinessTableProps {
     onEdit: (business: BusinessLocation) => void;
@@ -101,6 +105,25 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
     if (isLoading) return <div className="p-12 text-center">Loading...</div>;
 
+
+    // Individual location sync
+    const syncSingleLocation = async (id: string, name: string) => {
+        try {
+            // No loading toast, as requested
+            const docRef = doc(db, "locations", id);
+
+            await updateDoc(docRef, {
+                status: "published",
+                syncedAt: new Date().toISOString()
+            });
+
+            toast.success(`${name} is now live!`);
+        } catch (error) {
+            console.error("Single Sync Error:", error);
+            toast.error("Failed to publish location.");
+        }
+    };
+
     return (
 
         <div className="flex flex-col">
@@ -130,58 +153,59 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                             <th className="px-6 py-4 text-sm font-semibold text-slate-700">Contact Info</th>
                             <th className="px-6 py-4 text-sm font-semibold text-slate-700">Coordinates</th>
                             <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-center">Links</th>
-                            <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-center">Actions</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {paginatedData.length > 0 ? (
-                            paginatedData.map((business) => (
-                                <tr key={business.id} className="hover:bg-slate-50/50 transition-colors">
+                            paginatedData.map((loc) => (
+                                <tr key={loc.id} className="hover:bg-slate-50/50 transition-colors">
 
                                     <td className="px-6 py-4">
                                         <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
                                             <TableImage
-                                                src={business.imageUrl}
-                                                alt={business.businessName}
+                                                src={loc.imageUrl}
+                                                alt={loc.businessName}
                                             />
                                         </div>
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-slate-900">{business.businessName}</div>
+                                        <div className="font-medium text-slate-900">{loc.businessName}</div>
+                                        <div className="text-sm font-medium text-slate-500">{loc.businessOwner}</div>
                                     </td>
 
                                     <td className="px-6 py-4 space-y-1.5">
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
                                             <Mail size={14} className="text-blue-500/70" />
-                                            {business.email || "No email"}
+                                            {loc.email || "No email"}
                                         </div>
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
                                             <Phone size={14} className="text-green-600/70" />
-                                            <span>{business.phone || "No phone"}</span>
+                                            <span>{loc.phone || "No phone"}</span>
                                         </div>
 
                                         <div className="flex items-center gap-2 text-sm text-slate-600">
                                             <MapPin size={14} className=" text-slate-400" />
-                                            <span>{business.address}</span>
+                                            <span>{loc.address}</span>
                                         </div>
                                     </td>
 
 
 
                                     <td className="px-6 py-4 text-sm font-mono text-slate-500">
-                                        <div><label>Lat:</label> {business.latitude}</div>
+                                        <div><label>Lat:</label> {loc.latitude}</div>
                                         <div>
-                                            <label>Long:</label> {business.longitude}
+                                            <label>Long:</label> {loc.longitude}
                                         </div>
                                     </td>
 
                                     {/* LINKS COLUMN WITH ICONS */}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-center gap-3">
-                                            {business.websiteUrl && (
+                                            {loc.websiteUrl && (
                                                 <a
-                                                    href={business.websiteUrl}
+                                                    href={loc.websiteUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-slate-400 hover:text-blue-600 transition-colors"
@@ -190,9 +214,9 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                                     <Globe size={18} />
                                                 </a>
                                             )}
-                                            {business.contentUrl && (
+                                            {loc.contentUrl && (
                                                 <a
-                                                    href={business.contentUrl}
+                                                    href={loc.contentUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-slate-400 hover:text-indigo-600 transition-colors"
@@ -206,17 +230,27 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
                                     {/* ACTIONS COLUMN */}
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center gap-2">
+                                        <div className="flex justify-end gap-1">
+                                            {loc.status === "draft" ? (
+                                                <button
+                                                    className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                                                    onClick={() => syncSingleLocation(loc.id, loc.businessName)} // We can wire this to open your drawer
+                                                    title="Sync"
+                                                >
+                                                    <RefreshCcw size={18} />
+                                                </button>
+                                            ) : null}
                                             <button
                                                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                                onClick={() => onEdit(business)} // We can wire this to open your drawer
+                                                onClick={() => onEdit(loc)} // We can wire this to open your drawer
                                                 title="Edit"
                                             >
                                                 <Pencil size={18} />
                                             </button>
                                             <button
-                                                onClick={() => business.id && openDeleteModal(business.id)}
+                                                onClick={() => loc.id && openDeleteModal(loc.id)}
                                                 className="p-2 text-slate-400 hover:text-red-600 cursor-pointer"
+                                                title="Delete"
                                             >
                                                 <Trash2 size={18} />
                                             </button>

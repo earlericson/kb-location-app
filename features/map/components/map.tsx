@@ -34,7 +34,7 @@ export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: M
 
 
   // Move infoWindow
-  const infoWindowOffset: [number, number] = [0, -53];
+  const infoWindowOffset: [number, number] = [0, -45];
 
 
   // Create a local state to hold the map instance
@@ -105,7 +105,7 @@ export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: M
                   {/* Custom Styled Pin matching your dashboard theme */}
                   <Pin
                     background={selectedLocation?.id === loc.id ? "#ea4335" : "#ea4335"}
-                    scale={selectedLocation?.id === loc.id ? 1.3 : 1}
+                    // scale={selectedLocation?.id === loc.id ? 1.3 : 1}
                     borderColor={"#b31412"}
                     glyphColor={"#b31412"}
                   // scale={1.1}
