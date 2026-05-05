@@ -10,6 +10,7 @@ import UpdateConfirmModal from "../components/modal/update-confirm-modal";
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { getCoordinates } from "@/lib/geocoding";
 import { ImageUpload } from "./form-fields/image-upload";
+import toast from "react-hot-toast";
 
 interface BusinessFormProps {
   onSubmit: (data: BusinessFormValues) => Promise<void>;
@@ -83,15 +84,28 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues, busin
 
       // 2. Explicitly reset the form to empty values
       methods.reset();
+
+      toast.success("New location was added successfully!");
     }
   };
 
   // This is triggered only after the user clicks "Confirm" in the modal
   const handleConfirmUpdate = async () => {
     if (pendingData) {
-      await onSubmit(pendingData);
+      // We spread the existing data and explicitly set status to "draft"
+      const updatedPayload = {
+        ...pendingData,
+        status: "draft" as const,
+        updatedAt: new Date().toISOString() // Good for tracking when the edit happened
+      };
+
+      await onSubmit(updatedPayload);
+
       setShowUpdateModal(false);
       setPendingData(null);
+
+      // Optional: Toast to let the user know they need to sync again
+      toast.success("The changes were saved as Draft!");
     }
   };
   return (

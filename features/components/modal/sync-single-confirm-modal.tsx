@@ -4,12 +4,13 @@ import { RefreshCw } from "lucide-react";
 
 interface SyncModalProps {
     isOpen: boolean;
+    BusinessName: string;
     onClose: () => void;
     onConfirm: () => void;
     isLoading: boolean;
 }
 
-export const SyncModal = ({ isOpen, onClose, onConfirm, isLoading }: SyncModalProps) => {
+export const SyncSingleModal = ({ isOpen, BusinessName, onClose, onConfirm, isLoading }: SyncModalProps) => {
     if (!isOpen) return null;
 
     return (
@@ -27,10 +28,11 @@ export const SyncModal = ({ isOpen, onClose, onConfirm, isLoading }: SyncModalPr
                                 size={24}
                             />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800">All Locations Sync</h3>
+                        <h3 className="text-xl font-bold text-slate-800">Location Sync</h3>
                     </div>
                     <p className="text-slate-600 leading-relaxed">
-                        You are about to update the map locations. This will refresh all coordinates and business markers on the live map to reflect the latest data.
+                        Are you sure you want to publish <span className="font-semibold text-gray-800">{BusinessName}</span> location?
+                        It will appear on the live map immediately.
                     </p>
                 </div>
 

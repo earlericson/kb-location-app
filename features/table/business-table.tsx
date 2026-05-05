@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { useBusinessQuery } from "@/hooks/use-business-query";
 import { useBusinessMutations } from "@/hooks/use-business-mutation";
 import { BusinessLocation } from "@/types/business";
+import { SyncSingleModal } from "../components/modal/sync-single-confirm-modal";
 import ConfirmModal from "../components/modal/delete-confirm-modal";
 // Import Lucide Icons
 import {
@@ -17,7 +18,8 @@ import {
     Phone,
     Mail,
     MapPin,
-    RefreshCcw
+    RefreshCcw,
+    Map
 } from "lucide-react";
 import TableImage from "../components/table/table-image";
 import { doc, updateDoc } from "firebase/firestore";
@@ -29,6 +31,11 @@ interface BusinessTableProps {
 }
 
 export default function BusinessTable({ onEdit }: BusinessTableProps) {
+
+    // State to track which specific location is being confirmed
+    const [pendingLocation, setPendingLocation] = useState<{ id: string, businessName: string } | null>(null);
+    const [isSyncing, setIsSyncing] = useState(false);
+
     const { data: businesses, isLoading, isError } = useBusinessQuery();
     const { deleteBusiness, isDeleting } = useBusinessMutations();
 
@@ -97,9 +104,23 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
     const handleConfirmDelete = async () => {
         if (selectedId) {
-            await deleteBusiness(selectedId);
-            setIsDeleteModalOpen(false);
-            setSelectedId(null);
+            try {
+                await deleteBusiness(selectedId);
+
+                // Success notification
+                toast.success("Location was deleted successfully!");
+
+                // Close modal only after success
+                setIsDeleteModalOpen(false);
+                setSelectedId(null);
+            } catch (error) {
+                console.error("Delete Error:", error);
+
+                // Error notification
+                toast.error("Failed to delete location. Please try again.");
+
+                // Optionally keep the modal open so they can try again
+            }
         }
     };
 
@@ -107,29 +128,48 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
 
     // Individual location sync
-    const syncSingleLocation = async (id: string, name: string) => {
+
+    const handleSingleSync = async () => {
+        if (!pendingLocation) return;
+
+        setIsSyncing(true);
         try {
-            // No loading toast, as requested
-            const docRef = doc(db, "locations", id);
-
-            await updateDoc(docRef, {
-                status: "published",
-                syncedAt: new Date().toISOString()
+            await updateDoc(doc(db, "locations", pendingLocation.id), {
+                status: "published"
             });
-
-            toast.success(`${name} is now live!`);
+            toast.success(`${pendingLocation.businessName} is now live!`);
+            setPendingLocation(null); // This closes the modal
         } catch (error) {
-            console.error("Single Sync Error:", error);
-            toast.error("Failed to publish location.");
+            console.error("Sync error:", error);
+            toast.error("Failed to publish.");
+        } finally {
+            setIsSyncing(false);
         }
+
+        // try {
+        //     // No loading toast, as requested
+        //     const docRef = doc(db, "locations", id);
+
+        //     await updateDoc(docRef, {
+        //         status: "published",
+        //         syncedAt: new Date().toISOString()
+        //     });
+
+        //     toast.success(`${name} is now live!`);
+        // } catch (error) {
+        //     console.error("Single Sync Error:", error);
+        //     toast.error("Failed to publish location.");
+        // }
     };
 
     return (
 
         <div className="flex flex-col">
-            {/* Search Bar Section */}
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                <div className="relative max-w-sm">
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-b border-slate-100 bg-slate-50/50">
+
+                {/* Search Bar Section */}
+                <div className="relative flex-1 max-w-md">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="h-4 w-4 text-slate-400" />
                     </div>
@@ -141,6 +181,20 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                         onChange={handleSearchChange}
                     />
                 </div>
+
+                {/* Right Side: View Map & Sync Buttons */}
+                <div className="flex items-center gap-3">
+                    <a
+                        href="/map" // Or use Link from next/link
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-all shadow-sm"
+                    >
+                        <Map size={18} className="text-gray-700" />
+                        View Map
+                    </a>
+                </div>
+
             </div>
 
 
@@ -153,6 +207,7 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                             <th className="px-6 py-4 text-sm font-semibold text-slate-700">Contact Info</th>
                             <th className="px-6 py-4 text-sm font-semibold text-slate-700">Coordinates</th>
                             <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-center">Links</th>
+                            <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-center">Status</th>
                             <th className="px-6 py-4 text-sm font-semibold text-slate-700 text-end">Actions</th>
                         </tr>
                     </thead>
@@ -228,13 +283,27 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                         </div>
                                     </td>
 
+                                    <td className="px-6 py-4">
+                                        <div className="flex justify-center">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${loc.status === "published"
+                                                ? "bg-emerald-50 text-emerald-600  border-emerald-200"
+                                                : "bg-amber-50 text-amber-700 border-amber-200"
+                                                }`}>
+                                                {/* Dot indicator for extra visual cue */}
+                                                <span className={`w-1.5 h-1.5 mr-1.5 rounded-full ${loc.status === "published" ? "bg-emerald-600" : "bg-amber-500"
+                                                    }`}></span>
+                                                {loc.status.charAt(0).toUpperCase() + loc.status.slice(1)}
+                                            </span>
+                                        </div>
+                                    </td>
+
                                     {/* ACTIONS COLUMN */}
                                     <td className="px-6 py-4">
                                         <div className="flex justify-end gap-1">
                                             {loc.status === "draft" ? (
                                                 <button
                                                     className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                                                    onClick={() => syncSingleLocation(loc.id, loc.businessName)} // We can wire this to open your drawer
+                                                    onClick={() => setPendingLocation({ id: loc.id, businessName: loc.businessName })}
                                                     title="Sync"
                                                 >
                                                     <RefreshCcw size={18} />
@@ -315,14 +384,22 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                     </button>
                 </div>
             </div>
+
+            {pendingLocation && (
+                <SyncSingleModal
+                    isOpen={!!pendingLocation}
+                    BusinessName={pendingLocation.businessName}
+                    onClose={() => setPendingLocation(null)}
+                    onConfirm={handleSingleSync}
+                    isLoading={isSyncing}
+                />
+            )}
             {/* The Popup Box */}
             <ConfirmModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
                 isLoading={isDeleting}
-                title="Delete This Location?"
-                message="This action cannot be undone. This business and its map marker will be permanently removed from the database."
             />
         </div>
     );

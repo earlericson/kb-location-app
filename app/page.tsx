@@ -12,8 +12,10 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { LogoutButton } from "@/features/auth/logout-btn";
 import { SyncModal } from "@/features/components/modal/sync-confirm-modal";
-import { collection, getDocs, onSnapshot, query, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, getDocs, onSnapshot, query, where, writeBatch } from "firebase/firestore";
 import toast from "react-hot-toast";
+import { MappedLocation } from "@/types/location";
+import ImportStagingTable from "@/features/import/components/ImportStagingTable";
 
 export default function BusinessDashboard() {
   const router = useRouter();
@@ -25,6 +27,11 @@ export default function BusinessDashboard() {
   // State for Sync popup modal
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false)
+
+  // State for Importing data from GHL
+  // const [stagingData, setStagingData] = useState<MappedLocation[] | null>(null);
+  // const [loading, setLoading] = useState<boolean>(false);
+  // const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const { createBusiness, updateBusiness, isCreating, isUpdating } = useBusinessMutations();
 
@@ -176,15 +183,56 @@ export default function BusinessDashboard() {
   };
 
 
+
+  // Handle Import
+
+  // const handleImportClick = async (): Promise<void> => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await fetch('/api/ghl/import', { method: 'POST' });
+  //     if (!res.ok) throw new Error();
+
+  //     // Type the response data
+  //     const data: MappedLocation[] = await res.json();
+  //     setStagingData(data);
+  //     toast.success("Accounts loaded from GHL");
+  //   } catch (err) {
+  //     toast.error("Failed to fetch GHL accounts");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const processImport = async (selectedItems: MappedLocation[]): Promise<void> => {
+  //   setIsSaving(true);
+  //   try {
+  //     await Promise.all(
+  //       selectedItems.map((item: MappedLocation) =>
+  //         addDoc(collection(db, "locations"), {
+  //           ...item,
+  //           createdAt: new Date().toISOString()
+  //         })
+  //       )
+  //     );
+  //     toast.success(`Successfully imported ${selectedItems.length} businesses!`);
+  //     setStagingData(null);
+  //   } catch (err) {
+  //     toast.error("Error saving to database");
+  //   } finally {
+  //     setIsSaving(false);
+  //   }
+  // };
+
+
   return (
     <>
       <main className="relative min-h-screen bg-slate-50 py-10 md:py-10">
         <header>
           <div className="max-w-7xl mx-auto pb-4 sm:pb-4 lg:px-2">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:items-center justify-between items-center">
 
               {/* Column 1: Logo */}
-              <div className="shrink-0 items-center gap-3">
+              <div className="shrink-0 md:text-left pb-4 md:pb-0 text-center gap-3">
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                   Knockerball Locations
                 </h1>
@@ -194,7 +242,7 @@ export default function BusinessDashboard() {
               </div>
 
               {/* Column 2: 3 Buttons / Actions */}
-              <div className="flex items-center gap-1 sm:gap-4">
+              <div className="flex flex-col md:flex-row md:items-start gap-1 sm:gap-4">
 
                 {/* Button 1: Add New */}
                 <button
@@ -220,10 +268,17 @@ export default function BusinessDashboard() {
                   <span>Sync All</span>
                 </button>
 
+                {/* Button 2.1: Import */}
+                {/* <button
+                  onClick={handleImportClick}
+                  disabled={loading}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                >
+                  {loading ? "Fetching GHL..." : "Import from GHL"}
+                </button> */}
+
                 {/* Button 3: Logout */}
-                <div className="pl-4 border-l border-slate-300 ml-1 sm:ml-0">
-                  <LogoutButton />
-                </div>
+                <LogoutButton />
 
               </div>
             </div>
@@ -249,12 +304,8 @@ export default function BusinessDashboard() {
         </header>
 
 
-
-
-
-
         {/*Table Content */}
-        <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="max-w-7xl md:mx-auto mx-5 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <BusinessTable onEdit={handleEditClick} />
         </div>
 
@@ -280,6 +331,17 @@ export default function BusinessDashboard() {
         onConfirm={handleStartSync}
         isLoading={isSyncing}
       />
+
+
+      {/* Import Component */}
+      {/* {stagingData && (
+        <ImportStagingTable
+          data={stagingData}
+          onCancel={() => setStagingData(null)}
+          onConfirm={processImport}
+          isSaving={isSaving}
+        />
+      )} */}
     </>
   );
 }
