@@ -226,7 +226,7 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-slate-900">{loc.businessName}</div>
+                                        <div className="font-medium text-slate-900">{loc.businessName || loc.name}</div>
                                         <div className="text-sm font-medium text-slate-500">{loc.businessOwner}</div>
                                     </td>
 
@@ -240,8 +240,8 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                             <span>{loc.phone || "No phone"}</span>
                                         </div>
 
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <MapPin size={14} className=" text-slate-400" />
+                                        <div className="flex items-start gap-2 text-sm text-slate-600">
+                                            <MapPin size={14} className=" text-slate-400 mt-0.5 shrink-0" />
                                             <span>{loc.address}</span>
                                         </div>
                                     </td>

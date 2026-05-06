@@ -12,7 +12,7 @@ export async function POST() {
   }
 
   try {
-    const response = await fetch('https://services.leadconnectorhq.com/locations/search', {
+    const response = await fetch('https://services.leadconnectorhq.com/locations/search?limit=100', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${GHL_TOKEN}`,
@@ -30,16 +30,30 @@ export async function POST() {
     // Cast the JSON response to our GHL interface
     const data = (await response.json()) as GHLSearchResponse;
     
-    // Map the data using explicit types
-    const formatted: MappedLocation[] = data.locations.map((loc) => ({
-      ghlId: loc.id,
-      name: loc.name,
-      // String manipulation for a clean address
-      address: `${loc.address || ''}, ${loc.city || ''}`.trim().replace(/^,|,$/g, ''),
-      email: loc.email || '',
-      phone: loc.phone || '',
-      status: 'draft' // Initial state for staging
-    }));
+    const formatted: MappedLocation[] = data.locations.map((loc) => {
+      // Collect all geographical parts
+      const addressParts: (string | undefined)[] = [
+        loc.address,
+        loc.city,
+        loc.state,
+        loc.postalCode,
+        loc.country
+      ];
+
+      // Merge into a single clean string: "Street, City, State, Zip, Country"
+      const fullAddress = addressParts
+        .filter((part): part is string => !!part && part.trim() !== '')
+        .join(', ');
+
+      return {
+        ghlId: loc.id,
+        name: loc.name || 'Unnamed Business',
+        address: fullAddress || 'No address provided',
+        email: loc.email || '',
+        phone: loc.phone || '',
+        status: 'draft'
+      };
+    });
 
     return NextResponse.json(formatted);
   } catch (error) {

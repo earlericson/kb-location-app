@@ -5,14 +5,14 @@ import BusinessForm from "@/features/form/insert-data";
 import { useBusinessMutations } from "@/hooks/use-business-mutation";
 import { BusinessLocation, BusinessFormValues } from "@/types/business";
 import BusinessTable from "@/features/table/business-table";
-import { X, Plus, RefreshCcw, Info, InfoIcon } from "lucide-react";
+import { X, Plus, RefreshCcw, Info, InfoIcon, Import } from "lucide-react";
 import BusinessDrawer from "@/features/components/drawer/business-drawer";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { LogoutButton } from "@/features/auth/logout-btn";
 import { SyncModal } from "@/features/components/modal/sync-confirm-modal";
-import { addDoc, collection, getDocs, onSnapshot, query, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, getDocs, onSnapshot, query, serverTimestamp, where, writeBatch } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { MappedLocation } from "@/types/location";
 import ImportStagingTable from "@/features/import/components/ImportStagingTable";
@@ -29,12 +29,15 @@ export default function BusinessDashboard() {
   const [isSyncing, setIsSyncing] = useState(false)
 
   // State for Importing data from GHL
-  // const [stagingData, setStagingData] = useState<MappedLocation[] | null>(null);
-  // const [loading, setLoading] = useState<boolean>(false);
-  // const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [stagingData, setStagingData] = useState<MappedLocation[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
+  // State to check if GHL data is exist in the dashboard table
+  const [locations, setLocations] = useState<MappedLocation[]>([]);
+
+  // Mutation Hook
   const { createBusiness, updateBusiness, isCreating, isUpdating } = useBusinessMutations();
-
 
   // Login
   useEffect(() => {
@@ -53,49 +56,6 @@ export default function BusinessDashboard() {
     setSelectedBusiness(null);
     setIsDrawerOpen(true);
   };
-
-  // const handleStartSync = async () => {
-  //   setIsSyncing(true); // Start spinning
-
-  //   const syncAction = async () => {
-  //     // We do NOT use a try/catch here because toast.promise 
-  //     // needs the error to "bubble up" to trigger the error toast.
-  //     const q = query(collection(db, "locations"), where("status", "==", "draft"));
-  //     const snapshot = await getDocs(q);
-
-  //     if (snapshot.empty) {
-  //       throw new Error("Nothing to sync! All data is already live.");
-  //     }
-
-  //     const batch = writeBatch(db);
-  //     snapshot.forEach((doc) => {
-  //       batch.update(doc.ref, { status: "published" });
-  //     });
-
-  //     return await batch.commit();
-  //   };
-
-  //   try {
-  //     // We await the toast.promise
-  //     await toast.promise(syncAction(), {
-  //       loading: 'Publishing changes...',
-  //       success: 'Map updated successfully!',
-  //       error: (err) => `${err.message}`,
-  //     });
-  //   } catch (error: any) {
-  //     // --- THE FIX: FILTER THE CONSOLE LOG ---
-  //     if (error.message !== "Nothing to sync! All data is already live.") {
-  //       // Only log if it's a REAL error (Firestore, Network, etc.)
-  //       console.error("Actual Sync Error:", error);
-  //     }
-  //   }
-
-  //   // --- THE FIX IS HERE ---
-  //   // These run AFTER the toast is done, even if it threw an error.
-  //   setIsSyncing(false);
-  //   setIsSyncModalOpen(false);
-  // };
-
 
 
   const handleStartSync = async () => {
@@ -183,46 +143,48 @@ export default function BusinessDashboard() {
   };
 
 
-
   // Handle Import
 
-  // const handleImportClick = async (): Promise<void> => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await fetch('/api/ghl/import', { method: 'POST' });
-  //     if (!res.ok) throw new Error();
+  const handleImportClick = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/ghl/import', { method: 'POST' });
+      if (!res.ok) throw new Error();
 
-  //     // Type the response data
-  //     const data: MappedLocation[] = await res.json();
-  //     setStagingData(data);
-  //     toast.success("Accounts loaded from GHL");
-  //   } catch (err) {
-  //     toast.error("Failed to fetch GHL accounts");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+      // Type the response data
+      const data: MappedLocation[] = await res.json();
+      setStagingData(data);
+      toast.success("Accounts loaded from GHL");
+    } catch (err) {
+      toast.error("Failed to fetch GHL accounts");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // const processImport = async (selectedItems: MappedLocation[]): Promise<void> => {
-  //   setIsSaving(true);
-  //   try {
-  //     await Promise.all(
-  //       selectedItems.map((item: MappedLocation) =>
-  //         addDoc(collection(db, "locations"), {
-  //           ...item,
-  //           createdAt: new Date().toISOString()
-  //         })
-  //       )
-  //     );
-  //     toast.success(`Successfully imported ${selectedItems.length} businesses!`);
-  //     setStagingData(null);
-  //   } catch (err) {
-  //     toast.error("Error saving to database");
-  //   } finally {
-  //     setIsSaving(false);
-  //   }
-  // };
+  const confirmBulkImport = async (selectedItems: MappedLocation[]): Promise<void> => {
+    setIsSaving(true);
+    try {
+      await Promise.all(
+        selectedItems.map((item) =>
+          addDoc(collection(db, "locations"), {
+            ...item,
+            createdAt: serverTimestamp()
+          })
+        )
+      );
+      toast.success(`Imported ${selectedItems.length} locations`);
+      setStagingData(null);
+    } catch (err) {
+      toast.error("Database save failed");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
+
+  // Check the existing GHL IDs
+  const existingGhlIds = locations.map(loc => loc.ghlId);
 
   return (
     <>
@@ -269,13 +231,14 @@ export default function BusinessDashboard() {
                 </button>
 
                 {/* Button 2.1: Import */}
-                {/* <button
+                <button
                   onClick={handleImportClick}
                   disabled={loading}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                  className="flex items-center justify-center gap-2 bg-amber-700 hover:bg-amber-800 text-white px-5 py-2.5 rounded-lg font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
                 >
-                  {loading ? "Fetching GHL..." : "Import from GHL"}
-                </button> */}
+                  <Import size={20} />
+                  <span>{loading ? "Fetching ..." : "Import"}</span>
+                </button>
 
                 {/* Button 3: Logout */}
                 <LogoutButton />
@@ -334,14 +297,15 @@ export default function BusinessDashboard() {
 
 
       {/* Import Component */}
-      {/* {stagingData && (
+      {stagingData && (
         <ImportStagingTable
           data={stagingData}
+          existingIds={existingGhlIds}
           onCancel={() => setStagingData(null)}
-          onConfirm={processImport}
+          onConfirm={confirmBulkImport}
           isSaving={isSaving}
         />
-      )} */}
+      )}
     </>
   );
 }
