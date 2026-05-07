@@ -11,11 +11,12 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { LogoutButton } from "@/features/auth/logout-btn";
-import { SyncModal } from "@/features/components/modal/sync-confirm-modal";
+import { BulkSyncModal } from "@/features/components/modal/sync-confirm-modal";
 import { addDoc, collection, getDocs, onSnapshot, query, serverTimestamp, where, writeBatch } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { MappedLocation } from "@/types/location";
 import ImportStagingTable from "@/features/import/components/ImportStagingTable";
+import { getCoordinates } from "@/lib/geocoding";
 
 export default function BusinessDashboard() {
   const router = useRouter();
@@ -36,6 +37,9 @@ export default function BusinessDashboard() {
   // State to check if GHL data is exist in the dashboard table
   const [locations, setLocations] = useState<MappedLocation[]>([]);
 
+  // State for counting the draft location
+  const [draftCount, setDraftCount] = useState(0);
+
   // Mutation Hook
   const { createBusiness, updateBusiness, isCreating, isUpdating } = useBusinessMutations();
 
@@ -51,6 +55,40 @@ export default function BusinessDashboard() {
   }, [router]);
 
 
+  // Count the draft locations before syncing to live
+  useEffect(() => {
+    const q = query(collection(db, "locations"), where("status", "==", "draft"));
+
+    // onSnapshot is better than getDocs here because it updates the button 
+    // immediately if you add a new location in another tab
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setDraftCount(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
+
+  // Check the existing GHL IDs to prevent duplicate import
+  useEffect(() => {
+    const q = query(collection(db, "locations"));
+
+    // This function runs every time Firestore data changes
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const locData = querySnapshot.docs.map(doc => ({
+        ghlId: doc.id,
+        ...doc.data()
+      })) as MappedLocation[];
+
+      setLocations(locData);
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, []);
+
+
+
   // Open drawer for creation
   const handleAddNew = () => {
     setSelectedBusiness(null);
@@ -58,7 +96,7 @@ export default function BusinessDashboard() {
   };
 
 
-  const handleStartSync = async () => {
+  const handleBulkSync = async () => {
     setIsSyncing(true);
 
     try {
@@ -74,41 +112,59 @@ export default function BusinessDashboard() {
       }
 
       const batch = writeBatch(db);
+      let syncCount = 0;
+
       snapshot.forEach((doc) => {
-        batch.update(doc.ref, { status: "published" });
+
+        const data = doc.data();
+        const invalidLocations = data.businessName || "Unnamed Location";
+
+        // 1. Check for string-based empty values
+        const hasAddress = data.address && data.address.trim() !== "";
+
+        // 2. Check for numeric existence AND ensure they aren't exactly 0
+        const hasValidCoords =
+          data.latitude !== undefined && data.latitude !== null && data.latitude !== 0 && data.latitude !== "" &&
+          data.longitude !== undefined && data.longitude !== null && data.longitude !== 0 && data.longitude !== "";
+
+
+        if (hasAddress && hasValidCoords) {
+          batch.update(doc.ref, { status: "published" });
+          syncCount++;
+        } else {
+          toast.error(`${invalidLocations}: Missing address or valid coordinates.`, { duration: 5000, });
+        }
       });
 
-      await batch.commit();
+      if (syncCount > 0) {
+        // This commit triggers the onSnapshot listener automatically
+        await batch.commit();
+        toast.success(`Published ${syncCount} locations!`);
+      }
 
-      // Show success ONLY after completion
-      toast.success('Map updated successfully!');
-
-    } catch (error: any) {
+    } catch (error) {
       console.error("Sync Error:", error);
-      toast.error("Failed to sync changes.");
+      toast.error("Sync failed.");
     } finally {
-      // Cleanup UI states
       setIsSyncing(false);
       setIsSyncModalOpen(false);
     }
   };
 
-  // Counting the draft data
-  const [draftCount, setDraftCount] = useState(0);
+  //     await batch.commit();
 
-  // Use a listener to keep the count updated automatically
-  useEffect(() => {
-    const q = query(collection(db, "locations"), where("status", "==", "draft"));
+  //     // Show success ONLY after completion
+  //     toast.success('Map updated successfully!');
 
-    // onSnapshot is better than getDocs here because it updates the button 
-    // immediately if you add a new location in another tab
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setDraftCount(snapshot.size);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
+  //   } catch (error: any) {
+  //     console.error("Sync Error:", error);
+  //     toast.error("Failed to sync changes.");
+  //   } finally {
+  //     // Cleanup UI states
+  //     setIsSyncing(false);
+  //     setIsSyncModalOpen(false);
+  //   }
+  // };
 
 
   // Set selected record and open drawer for editing
@@ -142,9 +198,10 @@ export default function BusinessDashboard() {
     setSelectedBusiness(null);
   };
 
+  // Check the GhlIds if existing in the database
+  const existingGhlIds = locations.map(loc => loc.ghlId);
 
-  // Handle Import
-
+  // Fetch the GHL data
   const handleImportClick = async (): Promise<void> => {
     setLoading(true);
     try {
@@ -154,7 +211,7 @@ export default function BusinessDashboard() {
       // Type the response data
       const data: MappedLocation[] = await res.json();
       setStagingData(data);
-      toast.success("Accounts loaded from GHL");
+      toast.success("Data loaded from GHL");
     } catch (err) {
       toast.error("Failed to fetch GHL accounts");
     } finally {
@@ -162,29 +219,37 @@ export default function BusinessDashboard() {
     }
   };
 
+  // Import the GHL data to database
   const confirmBulkImport = async (selectedItems: MappedLocation[]): Promise<void> => {
     setIsSaving(true);
     try {
-      await Promise.all(
-        selectedItems.map((item) =>
-          addDoc(collection(db, "locations"), {
-            ...item,
-            createdAt: serverTimestamp()
-          })
-        )
-      );
+      for (const item of selectedItems) {
+        const coords = await getCoordinates(item.address);
+
+        await Promise.all(
+          selectedItems.map((item) =>
+            addDoc(collection(db, "locations"), {
+              ...item,
+              latitude: coords?.latitude || 0,
+              longitude: coords?.longitude || 0,
+              createdAt: serverTimestamp()
+            })
+          )
+        );
+      }
+
       toast.success(`Imported ${selectedItems.length} locations`);
       setStagingData(null);
+
+
+
+
     } catch (err) {
       toast.error("Database save failed");
     } finally {
       setIsSaving(false);
     }
   };
-
-
-  // Check the existing GHL IDs
-  const existingGhlIds = locations.map(loc => loc.ghlId);
 
   return (
     <>
@@ -288,10 +353,10 @@ export default function BusinessDashboard() {
       </main>
 
       {/* The Modal */}
-      <SyncModal
+      <BulkSyncModal
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}
-        onConfirm={handleStartSync}
+        onConfirm={handleBulkSync}
         isLoading={isSyncing}
       />
 

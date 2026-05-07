@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Import, Mail, MapPin, Phone, X } from 'lucide-react';
+import { Import, Mail, MapPin, Phone, User, X } from 'lucide-react';
 import { MappedLocation } from '@/types/location';
 
 interface Props {
@@ -91,12 +91,18 @@ export default function ImportStagingTable({ data, existingIds, onConfirm, onCan
                     key={item.ghlId}
                     // onClick={() => toggleOne(item.ghlId)}
                     onClick={() => !isAlreadyImported && toggleOne(item.ghlId)}
-                    className="hover:bg-blue-50/40 transition-colors cursor-pointer group">
+                    // className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                    className={`transition-colors border-b border-gray-50 ${isAlreadyImported
+                      ? 'bg-gray-50/50 cursor-not-allowed opacity-70'
+                      : 'hover:bg-indigo-50/30 cursor-pointer group'
+                      }`}
+
+                  >
                     <td className="p-5" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         disabled={isAlreadyImported}
-                        className={`w-4 h-4 rounded border-gray-300 accent-amber-700 transition-all ${isAlreadyImported ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'
+                        className={`w-4 h-4 rounded border-gray-300 accent-amber-700 transition-all ${isAlreadyImported ? 'cursor-not-allowed opacity-20' : 'cursor-pointer'
                           }`}
                         checked={selectedIds.includes(item.ghlId)}
                         // onChange={() => toggleOne(item.ghlId)} 
@@ -104,15 +110,25 @@ export default function ImportStagingTable({ data, existingIds, onConfirm, onCan
                       />
                     </td>
                     <td className="flex flex-col p-5 leading-relaxed">
-                      <span className='font-semibold text-gray-900'>{item.name}</span>
-                      <span className='text-[11px] text-gray-400 font-mono mt-0.5'>{item.ghlId}</span>
+                      <span className={`font-semibold transition-colors ${isAlreadyImported ? 'text-gray-400' : 'text-gray-800'
+                        }`} >
+                        {item.businessName}
+                      </span>
+                      <span className={`flex items-center gap-1.5 text-[11px] font-mono mt-0.5 ${isAlreadyImported ? 'text-gray-300' : 'text-gray-600'}`}><User size={12} />{item.businessOwner}
+                      </span>
                     </td>
                     <td className='p-5 text-gray-600 leading-relaxed'>
-                      <span className='flex items-center gap-1.5'><Mail size={12} />{item.email || 'No Email'}</span>
-                      <span className='flex items-center gap-1.5'><Phone size={12} />{item.phone || 'No Phone'}</span>
+                      <span className={`flex items-center gap-1.5 ${isAlreadyImported ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <Mail size={12} />{item.email || 'No Email'}
+                      </span>
+                      <span className={`flex items-center gap-1.5 ${isAlreadyImported ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <Phone size={12} />{item.phone || 'No Phone'}
+                      </span>
                     </td>
                     <td className="p-5 text-gray-600 leading-relaxed italic">
-                      <span className='flex items-center gap-1.5'><MapPin size={12} /> {item.address || 'No Address'}</span>
+                      <span className={`flex items-center gap-1.5 ${isAlreadyImported ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <MapPin size={12} /> {item.address || 'No Address'}
+                      </span>
                     </td>
                   </tr>
                 );

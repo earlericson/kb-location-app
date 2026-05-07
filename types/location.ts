@@ -4,6 +4,8 @@ import { FieldValue, Timestamp } from "firebase/firestore";
 interface GHLSubAccount {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   address?: string;
   city?: string;
   state?: string;
@@ -21,7 +23,8 @@ export interface GHLSearchResponse {
 // 3. Define the structure you are sending to your Dashboard
 export interface MappedLocation {
   ghlId: string;
-  name: string;
+  businessName: string;
+  businessOwner: string;
   address: string;
   email: string;
   phone: string;

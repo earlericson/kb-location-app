@@ -19,7 +19,8 @@ import {
     Mail,
     MapPin,
     RefreshCcw,
-    Map
+    Map,
+    User
 } from "lucide-react";
 import TableImage from "../components/table/table-image";
 import { doc, updateDoc } from "firebase/firestore";
@@ -226,8 +227,8 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-slate-900">{loc.businessName || loc.name}</div>
-                                        <div className="text-sm font-medium text-slate-500">{loc.businessOwner}</div>
+                                        <div className="text-[14px] font-bold text-slate-900">{loc.businessName || "Unnamed Business"}</div>
+                                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono mt-1"><User size={10} className="text-slate-500" />{loc.businessOwner || "No Owner"}</div>
                                     </td>
 
                                     <td className="px-6 py-4 space-y-1.5">
@@ -249,9 +250,9 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
 
                                     <td className="px-6 py-4 text-sm font-mono text-slate-500">
-                                        <div><label>Lat:</label> {loc.latitude}</div>
+                                        <div><label className="text-[11px]">Lat:</label>{loc.latitude}</div>
                                         <div>
-                                            <label>Long:</label> {loc.longitude}
+                                            <label className="text-[11px]">Lng:</label>{loc.longitude}
                                         </div>
                                     </td>
 

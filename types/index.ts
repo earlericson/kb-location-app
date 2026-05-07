@@ -1,7 +1,6 @@
 export interface BusinessLocation {
     id: string; // The Firestore Document ID
     businessName: string;
-    name?:string;
     businessOwner: string;
     phone: string;
     address: string;
