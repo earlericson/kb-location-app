@@ -34,7 +34,7 @@ interface BusinessTableProps {
 export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
     // State to track which specific location is being confirmed
-    const [pendingLocation, setPendingLocation] = useState<{ id: string, businessName: string } | null>(null);
+    const [pendingLocation, setPendingLocation] = useState<{ id: string, businessName: string, address: string, latitude: number | string, longitude: number | string } | null>(null);
     const [isSyncing, setIsSyncing] = useState(false);
 
     const { data: businesses, isLoading, isError } = useBusinessQuery();
@@ -127,40 +127,58 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
     if (isLoading) return <div className="p-12 text-center">Loading...</div>;
 
+    // const handleSingleSync = async () => {
+    //     if (!pendingLocation) return;
 
-    // Individual location sync
+    //     setIsSyncing(true);
+    //     try {
+    //         await updateDoc(doc(db, "locations", pendingLocation.id), {
+    //             status: "published"
+    //         });
+    //         toast.success(`${pendingLocation.businessName} is now live!`);
+    //         setPendingLocation(null); // This closes the modal
+    //     } catch (error) {
+    //         console.error("Sync error:", error);
+    //         toast.error("Failed to publish.");
+    //     } finally {
+    //         setIsSyncing(false);
+    //     }
+    // };
 
     const handleSingleSync = async () => {
         if (!pendingLocation) return;
 
+        // Destructure everything from the pendingLocation object
+        const { id, address, latitude, longitude, businessName } = pendingLocation;
+
+        // 1. Validation Logic
+        const hasAddress = address?.trim();
+        const hasValidCoords =
+            latitude !== undefined && latitude !== null && latitude !== 0 && latitude !== "" &&
+            longitude !== undefined && longitude !== null && longitude !== 0 && longitude !== "";
+
+        if (!hasAddress || !hasValidCoords) {
+            toast.error(`${businessName || 'Location'}: Missing address or valid coordinates.`, { duration: 5000, });
+            setPendingLocation(null); // Close the modal
+            return;
+        }
+
         setIsSyncing(true);
         try {
-            await updateDoc(doc(db, "locations", pendingLocation.id), {
+            // 2. Perform the Firestore update
+            const docRef = doc(db, "locations", id);
+            await updateDoc(docRef, {
                 status: "published"
             });
-            toast.success(`${pendingLocation.businessName} is now live!`);
-            setPendingLocation(null); // This closes the modal
+
+            toast.success(`${businessName} is now live on the map!`);
+            setPendingLocation(null);
         } catch (error) {
             console.error("Sync error:", error);
-            toast.error("Failed to publish.");
+            toast.error("Failed to publish changes.");
         } finally {
             setIsSyncing(false);
         }
-
-        // try {
-        //     // No loading toast, as requested
-        //     const docRef = doc(db, "locations", id);
-
-        //     await updateDoc(docRef, {
-        //         status: "published",
-        //         syncedAt: new Date().toISOString()
-        //     });
-
-        //     toast.success(`${name} is now live!`);
-        // } catch (error) {
-        //     console.error("Single Sync Error:", error);
-        //     toast.error("Failed to publish location.");
-        // }
     };
 
     return (
@@ -247,8 +265,6 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                         </div>
                                     </td>
 
-
-
                                     <td className="px-6 py-4 text-sm font-mono text-slate-500">
                                         <div><label className="text-[11px]">Lat:</label>{loc.latitude}</div>
                                         <div>
@@ -304,7 +320,7 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                             {loc.status === "draft" ? (
                                                 <button
                                                     className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                                                    onClick={() => setPendingLocation({ id: loc.id, businessName: loc.businessName })}
+                                                    onClick={() => setPendingLocation(loc)}
                                                     title="Sync"
                                                 >
                                                     <RefreshCcw size={18} />

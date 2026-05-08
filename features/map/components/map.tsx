@@ -30,7 +30,7 @@ export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: M
   const defaultZoom = 5;
   const minZoom = 4;
   const maxZoom = 20;
-  const selectedZoom = 15;
+  const selectedZoom = 7;
 
 
   // Move infoWindow
@@ -41,25 +41,72 @@ export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: M
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
   // This effect runs whenever the selectedLocation OR the mapInstance changes
+  // useEffect(() => {
+  //   if (!mapInstance || !selectedLocation) {
+  //     // Optional: Reset to default view when nothing is selected
+  //     if (mapInstance) {
+  //       mapInstance.panTo(defaultCenter);
+  //       mapInstance.setZoom(defaultZoom);
+  //     }
+  //     return;
+  //   }
+
+  //   const lat = selectedLocation.latitude;
+  //   const lng = selectedLocation.longitude;
+
+  //   if (!isNaN(lat) && !isNaN(lng)) {
+  //     console.log("Map is ready! Panning to:", lat, lng);
+  //     mapInstance.panTo({ lat, lng });
+  //     mapInstance.setZoom(selectedZoom);
+  //   }
+  // }, [selectedLocation, mapInstance]);
+
+
+
+
   useEffect(() => {
-    if (!mapInstance || !selectedLocation) {
-      // Optional: Reset to default view when nothing is selected
-      if (mapInstance) {
-        mapInstance.panTo(defaultCenter);
-        mapInstance.setZoom(defaultZoom);
-      }
+    if (!mapInstance) return;
+
+    // Case: Reset to default view when no location is selected
+    if (!selectedLocation) {
+      mapInstance.panTo(defaultCenter);
+      mapInstance.setZoom(defaultZoom);
       return;
     }
 
-    const lat = selectedLocation.latitude;
-    const lng = selectedLocation.longitude;
+    const { latitude: lat, longitude: lng } = selectedLocation;
 
     if (!isNaN(lat) && !isNaN(lng)) {
-      console.log("Map is ready! Panning to:", lat, lng);
+      // 1. Smoothly pan to the center
       mapInstance.panTo({ lat, lng });
-      mapInstance.setZoom(selectedZoom);
+
+      // 2. Animate the zoom level iteratively
+      const targetZoom = selectedZoom;
+      const targetPos = { lat, lng };
+
+      // 1. Initial Pan to get the marker moving toward center
+      mapInstance.panTo(targetPos);
+
+      const animateZoom = () => {
+        const currentZoom = mapInstance.getZoom();
+        if (currentZoom !== undefined && currentZoom < targetZoom) {
+          // Increment zoom by a small amount for smoothness
+          mapInstance.setZoom(currentZoom + 1);
+
+          // Re-center during the zoom to prevent the marker from "drifting"
+          mapInstance.panTo(targetPos);
+
+          // Schedule next step if not at target
+          setTimeout(animateZoom, 60);
+        }
+      };
+
+      // Start the zoom animation after the pan begins
+      const timeoutId = setTimeout(animateZoom, 100);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [selectedLocation, mapInstance]);
+  }, [selectedLocation, mapInstance, defaultCenter, defaultZoom, selectedZoom]);
 
 
 
@@ -91,6 +138,9 @@ export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: M
           disableDefaultUI={true}
           clickableIcons={false}
           onIdle={(ev) => setMapInstance(ev.map)}
+          renderingType="VECTOR" // Forces the smoother engine
+          reuseMaps={true}
+
         >
           {businessloc.map((loc) => {
             // Ensure we have coordinates before trying to render a marker
@@ -102,6 +152,12 @@ export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: M
                   position={{ lat: loc.latitude, lng: loc.longitude }}
                   onClick={() => onMarkerClick(loc)} // Ensure this is fired
                 >
+
+                  {/* Custom Styled for Map Zoom Transition Effect */}
+                  <div className={`transition-all duration-500 transform ${selectedLocation?.id === loc.id ? 'scale-125' : 'scale-100'
+                    }`}></div>
+
+
                   {/* Custom Styled Pin matching your dashboard theme */}
                   <Pin
                     background={selectedLocation?.id === loc.id ? "#ea4335" : "#ea4335"}

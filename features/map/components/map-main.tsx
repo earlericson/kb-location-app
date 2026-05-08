@@ -111,22 +111,6 @@ export default function MapMain({ initialData }: MapMainProps) {
                                         )}
 
                                     </div>
-
-
-
-
-
-
-
-                                    {/* <div className="flex items-start gap-2 mt-2 text-gray-500">
-                                        <MapPin size={14} className="mt-0.5 shrink-0" />
-                                        <p className="text-xs leading-relaxed">{loc.address || "No address provided"}</p>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 mt-1.5 text-gray-500">
-                                        <Phone size={14} className="shrink-0" />
-                                        <p className="text-xs">{loc.phone || "No phone number"}</p>
-                                    </div> */}
                                 </div>
                             )
                         })
