@@ -31,24 +31,29 @@
 }
 
 /* Google map markers effect */
-/* @keyframes sonar {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-
-@keyframes bounce {
+/* @keyframes marker-bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
 
-.animate-sonar {
-  animation: sonar 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+@keyframes sonar-pulse {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.4); opacity: 0; }
 }
 
-.animate-bounce-marker {
-  animation: bounce 0.6s ease-in-out infinite;
+.animate-marker-bounce {
+  animation: marker-bounce 0.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-sonar {
+  animation: sonar-pulse 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 } */
 
+/* Adjusted the height of InfoWindow under AdvancedMarker */
+.gm-style-iw-c, .gm-style-iw-d {
+  max-height: max-content !important;
+}
 
 body {
   background: var(--background);

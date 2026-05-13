@@ -48,9 +48,10 @@ export const LoginForm = () => {
     <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
       {/* Header Section */}
       <div className="flex flex-col items-center mb-8">
-        <div className="bg-blue-50 p-4 rounded-full mb-4">
+        {/* <div className="bg-blue-50 p-4 rounded-full mb-4">
           <Lock className="text-blue-600" size={28} />
-        </div>
+        </div> */}
+        <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/RRsoB9MnC4C0j0z8T4bT/media/67c0096028abdda0c29c34ee.png" alt="Knockerball logo" width={120} />
         <h1 className="text-2xl font-bold text-gray-900">Knockerball Map</h1>
         <p className="text-gray-500 text-sm mt-1 text-center">
           Sign in to manage all knockerball locations.

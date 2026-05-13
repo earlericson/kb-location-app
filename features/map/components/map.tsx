@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   APIProvider,
   Map,
@@ -9,107 +9,26 @@ import {
   InfoWindow
 } from "@vis.gl/react-google-maps";
 import { BusinessLocation } from "@/types";
-import { Globe, MapPin, Phone, Mail, ExternalLink, User } from "lucide-react";
+import { Globe, MapPin, Phone, Mail, ExternalLink, User, Image } from "lucide-react";
 
 interface MapProps {
-  businessloc: BusinessLocation[];
-  selectedLocation: BusinessLocation | null;
+  businessloc: BusinessLocation;
+  // selectedLocation: BusinessLocation | null;
   onMarkerClick: (b: BusinessLocation | null) => void;
+  isSelected: boolean;
 }
 
-export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: MapProps) => {
+export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  // const isSelected = selectedLocation?.id === businessloc[0].id;
 
   // Use your env variable for the API Key
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
-  // Note: Advanced Markers require a Map ID from Google Cloud Console
-  const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_ID || "DEMO_MAP_ID";
-
-
-  // Default center (Kansas City, Missouri, USA)
-  const defaultCenter = { lat: 39.100105, lng: -94.5781416 };
-  const defaultZoom = 5;
-  const minZoom = 4;
-  const maxZoom = 20;
-  const selectedZoom = 7;
-
 
   // Move infoWindow
   const infoWindowOffset: [number, number] = [0, -45];
 
-
-  // Create a local state to hold the map instance
-  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
-
-  // This effect runs whenever the selectedLocation OR the mapInstance changes
-  // useEffect(() => {
-  //   if (!mapInstance || !selectedLocation) {
-  //     // Optional: Reset to default view when nothing is selected
-  //     if (mapInstance) {
-  //       mapInstance.panTo(defaultCenter);
-  //       mapInstance.setZoom(defaultZoom);
-  //     }
-  //     return;
-  //   }
-
-  //   const lat = selectedLocation.latitude;
-  //   const lng = selectedLocation.longitude;
-
-  //   if (!isNaN(lat) && !isNaN(lng)) {
-  //     console.log("Map is ready! Panning to:", lat, lng);
-  //     mapInstance.panTo({ lat, lng });
-  //     mapInstance.setZoom(selectedZoom);
-  //   }
-  // }, [selectedLocation, mapInstance]);
-
-
-
-
-  useEffect(() => {
-    if (!mapInstance) return;
-
-    // Case: Reset to default view when no location is selected
-    if (!selectedLocation) {
-      mapInstance.panTo(defaultCenter);
-      mapInstance.setZoom(defaultZoom);
-      return;
-    }
-
-    const { latitude: lat, longitude: lng } = selectedLocation;
-
-    if (!isNaN(lat) && !isNaN(lng)) {
-      // 1. Smoothly pan to the center
-      mapInstance.panTo({ lat, lng });
-
-      // 2. Animate the zoom level iteratively
-      const targetZoom = selectedZoom;
-      const targetPos = { lat, lng };
-
-      // 1. Initial Pan to get the marker moving toward center
-      mapInstance.panTo(targetPos);
-
-      const animateZoom = () => {
-        const currentZoom = mapInstance.getZoom();
-        if (currentZoom !== undefined && currentZoom < targetZoom) {
-          // Increment zoom by a small amount for smoothness
-          mapInstance.setZoom(currentZoom + 1);
-
-          // Re-center during the zoom to prevent the marker from "drifting"
-          mapInstance.panTo(targetPos);
-
-          // Schedule next step if not at target
-          setTimeout(animateZoom, 60);
-        }
-      };
-
-      // Start the zoom animation after the pan begins
-      const timeoutId = setTimeout(animateZoom, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [selectedLocation, mapInstance, defaultCenter, defaultZoom, selectedZoom]);
-
-
-
+  // Read More button
   const handleContentUrl = (e: React.MouseEvent, url: string) => {
     // 1. Prevent the map from reacting to the click
     e.stopPropagation();
@@ -124,168 +43,178 @@ export const MapContainer = ({ businessloc, selectedLocation, onMarkerClick }: M
     window.open(targetUrl, '_blank', 'noopener,noreferrer');
   };
 
-
   return (
     <div className="w-full h-full overflow-hidden shadow-md border border-gray-200">
       <APIProvider apiKey={API_KEY} libraries={['marker']}>
-        <Map
-          defaultCenter={defaultCenter}
-          defaultZoom={defaultZoom}
-          minZoom={minZoom}
-          maxZoom={maxZoom}
-          mapId={MAP_ID}
-          gestureHandling={"greedy"}
-          disableDefaultUI={true}
-          clickableIcons={false}
-          onIdle={(ev) => setMapInstance(ev.map)}
-          renderingType="VECTOR" // Forces the smoother engine
-          reuseMaps={true}
 
-        >
-          {businessloc.map((loc) => {
-            // Ensure we have coordinates before trying to render a marker
-            if (!loc.latitude || !loc.longitude) return null;
+        return (
+        <React.Fragment key={businessloc.id}>
+          <AdvancedMarker
+            position={{ lat: businessloc.latitude, lng: businessloc.longitude }}
+            // collisionBehavior="REQUIRED"
+            onClick={() => onMarkerClick(businessloc)} // Ensure this is fired
+            // onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            // Higher z-index on hover ensures the text is never hidden
+            zIndex={isHovered ? 9999 : 1}
+            onMouseEnter={() => {
+              setIsHovered(true);
+              // console.log("Hovered Business:", businessloc.businessName);
+            }}
+          >
 
-            return (
-              <React.Fragment key={loc.id}>
-                <AdvancedMarker
-                  position={{ lat: loc.latitude, lng: loc.longitude }}
-                  onClick={() => onMarkerClick(loc)} // Ensure this is fired
+            {/* Custom Styled for Map Zoom Transition Effect */}
+            {/* <div className={`transition-all duration-500 transform ${selectedLocation?.id === businessloc.id ? 'scale-125' : 'scale-100'
+                    }`}></div> */}
+
+            <div className="relative flex flex-col items-center justify-end h-10 min-w-max overflow-visible no-close">
+
+              {/* The Individual Text Popup */}
+
+              {isHovered && !isSelected && (
+                <InfoWindow
+                  position={{ lat: businessloc.latitude, lng: businessloc.longitude }}
+                  pixelOffset={infoWindowOffset}
+                  headerDisabled={true}
                 >
 
-                  {/* Custom Styled for Map Zoom Transition Effect */}
-                  <div className={`transition-all duration-500 transform ${selectedLocation?.id === loc.id ? 'scale-125' : 'scale-100'
-                    }`}></div>
+                  <h4 className="font-bold text-base text-[#ea4335] leading-tight mb-3">
+                    {businessloc.businessName}
+                  </h4>
+                </InfoWindow>
 
+              )}
 
-                  {/* Custom Styled Pin matching your dashboard theme */}
-                  <Pin
-                    background={selectedLocation?.id === loc.id ? "#ea4335" : "#ea4335"}
-                    // scale={selectedLocation?.id === loc.id ? 1.3 : 1}
-                    borderColor={"#b31412"}
-                    glyphColor={"#b31412"}
-                  // scale={1.1}
-                  />
-                </AdvancedMarker>
+              {/* Custom Styled Pin matching your dashboard theme */}
+              <Pin
+                background={isSelected || isHovered ? "#ea4335" : "#ea4335"}
+                // scale={selectedLocation?.id === loc.id ? 1.3 : 1}
+                borderColor={"#b31412"}
+                glyphColor={"#b31412"}
+              // scale={1.1}
+              />
 
-                {/* Show details when the marker is clicked */}
-                {selectedLocation?.id === loc.id && (
-                  <InfoWindow
-                    position={{ lat: loc.latitude, lng: loc.longitude }}
-                    onCloseClick={() => onMarkerClick(null)}
-                    pixelOffset={infoWindowOffset}
-                  >
-                    <div className="p-2 w-70">
+            </div>
+          </AdvancedMarker>
 
-                      {/* Location Image */}
-                      {loc.imageUrl ? (
-                        <div className="w-full h-35 overflow-hidden bg-gray-100 mb-5">
-                          <img
-                            src={loc.imageUrl}
-                            alt={loc.businessName}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        // Fallback if no image exists
-                        <div className="w-full h-12 bg-[#ea4335]/5 mb-2" />
-                      )}
+          {/* Show details when the marker is clicked */}
+          {
+            isSelected && (
+              <InfoWindow
+                position={{ lat: businessloc.latitude, lng: businessloc.longitude }}
+                onCloseClick={() => onMarkerClick(null)}
+                pixelOffset={infoWindowOffset}
+              >
+                <div className="p-2 w-70">
 
-
-                      {/* Location Name */}
-                      <h4 className="font-bold text-base text-[#ea4335] leading-tight mb-3">
-                        {loc.businessName}
-                      </h4>
-
-                      <div className="space-y-2">
-
-                        {/* Business Owner */}
-                        {loc.businessOwner && (
-                          <div className="flex items-center gap-2">
-                            <User size={12} className="shrink-0 font-bold text-gray-400" />
-                            <p className="text-[14px] text-gray-600 leading-snug">
-                              {loc.businessOwner}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Address */}
-                        {loc.address && (
-                          <div className="flex items-start gap-2">
-                            <MapPin size={12} className="shrink-0 mt-0.5 font-bold text-gray-400" />
-                            <p className="text-[14px] text-gray-600 leading-snug">
-                              {loc.address}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Email */}
-                        {loc.email && (
-                          <div className="flex items-center gap-2">
-                            <Mail size={12} className="shrink-0 font-bold text-gray-400" />
-                            <a
-                              href={`mailto:${loc.email}`}
-                              className="text-[14px] text-gray-700 hover:text-[#ea4335] break-all transition-colors"
-                            >
-                              {loc.email}
-                            </a>
-                          </div>
-                        )}
-
-                        {/* Phone */}
-                        {loc.phone && (
-                          <div className="flex items-center gap-2">
-                            <Phone size={12} className="shrink-0 font-bold text-gray-400" />
-                            <a
-                              href={`tel:${loc.phone}`}
-                              className="text-[14px] text-gray-700 hover:text-[#ea4335] transition-colors"
-                            >
-                              {loc.phone}
-                            </a>
-                          </div>
-                        )}
-
-                        {/* Website */}
-                        {loc.websiteUrl && (
-                          <div className="flex items-center gap-2">
-                            <Globe size={12} className="shrink-0 font-bold text-gray-400" />
-                            <a
-                              href={loc.websiteUrl.startsWith('http') ? loc.websiteUrl : `https://${loc.websiteUrl}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[14px] text-gray-700 hover:text-[#ea4335] transition-colors"
-                            >
-                              {/* This regex removes http://, https://, and www. */}
-                              {loc.websiteUrl.replace(/(^\w+:|^)\/\/(www\.)?/, '')}
-                            </a>
-                          </div>
-                        )}
-
-                        {/* Read More button */}
-
-                        {loc.contentUrl && (
-                          <div className="pt-2 border-t border-gray-100">
-                            <button
-                              onClick={(e) => handleContentUrl(e, loc.contentUrl)}
-                              className="w-full bg-black text-white uppercase text-[12px] font-bold py-2.5 px-4 hover:bg-[#2f2f2f] transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
-                            >
-                              <span>Read More</span>
-                              {/* Optional: Add a small arrow icon if you're using Lucide */}
-                              <ExternalLink size={12} />
-                            </button>
-                          </div>
-                        )}
-
-
-                      </div>
+                  {/* Location Image */}
+                  {businessloc.imageUrl ? (
+                    <div className="w-full h-40 overflow-hidden bg-gray-100 mb-5">
+                      <img
+                        src={businessloc.imageUrl}
+                        alt={businessloc.businessName}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  </InfoWindow>
-                )
-                }
-              </React.Fragment>
-            );
-          })}
-        </Map>
+                  ) : (
+                    // Fallback if no image exists
+                    <div className="flex flex-col items-center justify-center gap-1 w-full h-40 bg-slate-50 mb-5 text-gray-400">
+                      <Image size={42} />
+                      <span className="text-[14px]">No image available</span>
+                    </div>
+                  )}
+
+
+                  {/* Location Name */}
+                  <h4 className="font-bold text-base text-[#ea4335] leading-tight mb-1">
+                    {businessloc.businessName}
+                  </h4>
+
+                  <div className="space-y-2">
+
+                    {/* Business Owner */}
+                    {businessloc.businessOwner && (
+                      <div className="flex items-center gap-2">
+                        <User size={10} className="shrink-0 font-bold text-gray-400" />
+                        <p className="font-mono text-[11px] text-gray-600 leading-snug">
+                          {businessloc.businessOwner}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Address */}
+                    {businessloc.address && (
+                      <div className="flex items-start gap-2 mt-4">
+                        <MapPin size={12} className="shrink-0 mt-0.5 font-bold text-gray-400" />
+                        <p className="text-[14px] text-gray-600 leading-snug">
+                          {businessloc.address}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Email */}
+                    {businessloc.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail size={12} className="shrink-0 font-bold text-gray-400" />
+                        <a
+                          href={`mailto:${businessloc.email}`}
+                          className="text-[14px] text-gray-700 hover:text-[#ea4335] break-all transition-colors"
+                        >
+                          {businessloc.email}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Phone */}
+                    {businessloc.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone size={12} className="shrink-0 font-bold text-gray-400" />
+                        <a
+                          href={`tel:${businessloc.phone}`}
+                          className="text-[14px] text-gray-700 hover:text-[#ea4335] transition-colors"
+                        >
+                          {businessloc.phone}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Website */}
+                    {businessloc.websiteUrl && (
+                      <div className="flex items-center gap-2">
+                        <Globe size={12} className="shrink-0 font-bold text-gray-400" />
+                        <a
+                          href={businessloc.websiteUrl.startsWith('http') ? businessloc.websiteUrl : `https://${businessloc.websiteUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[14px] text-gray-700 hover:text-[#ea4335] transition-colors"
+                        >
+                          {/* This regex removes http://, https://, and www. */}
+                          {businessloc.websiteUrl.replace(/(^\w+:|^)\/\/(www\.)?/, '')}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Read More button */}
+
+                    {businessloc.contentUrl && (
+                      <div className="pt-2 border-t border-gray-100">
+                        <button
+                          onClick={(e) => handleContentUrl(e, businessloc.contentUrl)}
+                          className="w-full bg-black text-white uppercase text-[12px] font-bold py-2.5 px-4 hover:bg-[#2f2f2f] transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          <span>Read More</span>
+                          {/* Optional: Add a small arrow icon if you're using Lucide */}
+                          <ExternalLink size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </InfoWindow>
+            )
+          }
+        </React.Fragment>
+        );
       </APIProvider>
     </div >
   );

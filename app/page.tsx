@@ -12,7 +12,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { LogoutButton } from "@/features/auth/logout-btn";
 import { BulkSyncModal } from "@/features/components/modal/sync-confirm-modal";
-import { addDoc, collection, getDocs, onSnapshot, query, serverTimestamp, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where, writeBatch } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { MappedLocation } from "@/types/location";
 import ImportStagingTable from "@/features/import/components/ImportStagingTable";
@@ -223,24 +223,46 @@ export default function BusinessDashboard() {
   const confirmBulkImport = async (selectedItems: MappedLocation[]): Promise<void> => {
     setIsSaving(true);
     try {
-      for (const item of selectedItems) {
+      // for (const item of selectedItems) {
+      //   const coords = await getCoordinates(item.address);
+
+      //   await Promise.all(
+      //     selectedItems.map((item) =>
+      //       addDoc(collection(db, "locations"), {
+      //         ...item,
+      //         latitude: coords?.latitude || 0,
+      //         longitude: coords?.longitude || 0,
+      //         createdAt: serverTimestamp()
+      //       })
+      //     )
+      //   );
+      // }
+
+      // toast.success(`Imported ${selectedItems.length} locations`);
+      // setStagingData(null);
+
+      // 1. Process each item individually to get unique coordinates
+      const importPromises = selectedItems.map(async (item) => {
         const coords = await getCoordinates(item.address);
 
-        await Promise.all(
-          selectedItems.map((item) =>
-            addDoc(collection(db, "locations"), {
-              ...item,
-              latitude: coords?.latitude || 0,
-              longitude: coords?.longitude || 0,
-              createdAt: serverTimestamp()
-            })
-          )
-        );
-      }
+        // 2. Use setDoc with a unique ID (ghlId or locationId) instead of addDoc
+        // This prevents duplicates if the same item is imported twice.
+        const docId = item.ghlId || item.ghlId; // Use the GHL unique identifier
+        const docRef = doc(db, "locations", docId);
+
+        return setDoc(docRef, {
+          ...item,
+          latitude: coords?.latitude || 0,
+          longitude: coords?.longitude || 0,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      });
+
+      await Promise.all(importPromises);
 
       toast.success(`Imported ${selectedItems.length} locations`);
       setStagingData(null);
-
 
 
 
@@ -260,12 +282,20 @@ export default function BusinessDashboard() {
 
               {/* Column 1: Logo */}
               <div className="shrink-0 md:text-left pb-4 md:pb-0 text-center gap-3">
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                  Knockerball Locations
-                </h1>
-                <p className="text-slate-500 text-sm">
-                  Manage and monitor your automated mapping system data.
-                </p>
+                <div className="flex items-center gap-4">
+                  <div className="flex">
+                    <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/RRsoB9MnC4C0j0z8T4bT/media/67c0096028abdda0c29c34ee.png" alt="Knockerball logo" width={70} />
+                  </div>
+                  <div className="flex flex-col">
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                      Knockerball Locations
+                    </h1>
+                    <p className="text-slate-500 text-sm">
+                      Manage and monitor your automated mapping system data.
+                    </p>
+                  </div>
+                </div>
+
               </div>
 
               {/* Column 2: 3 Buttons / Actions */}
