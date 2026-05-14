@@ -151,22 +151,6 @@ export default function BusinessDashboard() {
     }
   };
 
-  //     await batch.commit();
-
-  //     // Show success ONLY after completion
-  //     toast.success('Map updated successfully!');
-
-  //   } catch (error: any) {
-  //     console.error("Sync Error:", error);
-  //     toast.error("Failed to sync changes.");
-  //   } finally {
-  //     // Cleanup UI states
-  //     setIsSyncing(false);
-  //     setIsSyncModalOpen(false);
-  //   }
-  // };
-
-
   // Set selected record and open drawer for editing
   const handleEditClick = (business: BusinessLocation) => {
     setSelectedBusiness(business);
@@ -223,24 +207,6 @@ export default function BusinessDashboard() {
   const confirmBulkImport = async (selectedItems: MappedLocation[]): Promise<void> => {
     setIsSaving(true);
     try {
-      // for (const item of selectedItems) {
-      //   const coords = await getCoordinates(item.address);
-
-      //   await Promise.all(
-      //     selectedItems.map((item) =>
-      //       addDoc(collection(db, "locations"), {
-      //         ...item,
-      //         latitude: coords?.latitude || 0,
-      //         longitude: coords?.longitude || 0,
-      //         createdAt: serverTimestamp()
-      //       })
-      //     )
-      //   );
-      // }
-
-      // toast.success(`Imported ${selectedItems.length} locations`);
-      // setStagingData(null);
-
       // 1. Process each item individually to get unique coordinates
       const importPromises = selectedItems.map(async (item) => {
         const coords = await getCoordinates(item.address);
@@ -264,8 +230,6 @@ export default function BusinessDashboard() {
       toast.success(`Imported ${selectedItems.length} locations`);
       setStagingData(null);
 
-
-
     } catch (err) {
       toast.error("Database save failed");
     } finally {
@@ -284,7 +248,7 @@ export default function BusinessDashboard() {
               <div className="shrink-0 md:text-left pb-4 md:pb-0 text-center gap-3">
                 <div className="flex items-center gap-4">
                   <div className="flex">
-                    <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/RRsoB9MnC4C0j0z8T4bT/media/67c0096028abdda0c29c34ee.png" alt="Knockerball logo" width={70} />
+                    <img src="https://firebasestorage.googleapis.com/v0/b/knockerball-map.firebasestorage.app/o/kblocations%2Fkb-logo.webp?alt=media&token=40a9618b-23d0-42d0-8727-c90f11c78b3f" alt="Knockerball logo" width={70} />
                   </div>
                   <div className="flex flex-col">
                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight">

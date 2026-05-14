@@ -43,7 +43,7 @@ export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) =
             console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
 
             // 4. Create Firebase Ref with .webp extension
-            const fileName = `businesses/${Date.now()}.webp`;
+            const fileName = `kblocations/${Date.now()}.webp`;
             const storageRef = ref(storage, fileName);
 
             // 5. Upload to Firebase
@@ -116,7 +116,7 @@ export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) =
 
             // DATABASE UPDATE
             if (businessId) {
-                const businessRef = doc(db, "businesses", businessId);
+                const businessRef = doc(db, "kblocations", businessId);
                 await updateDoc(businessRef, { imageUrl: "" });
                 console.log("Firestore synced successfully");
             }

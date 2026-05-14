@@ -346,7 +346,7 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                                <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                                     No businesses found matching
                                 </td>
                             </tr>

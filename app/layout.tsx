@@ -19,6 +19,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Knockerball Locations",
   description: "Manage and monitor your automated mapping system data.",
+  icons: {
+    icon: "https://firebasestorage.googleapis.com/v0/b/knockerball-map.firebasestorage.app/o/kblocations%2Fkb-logo.webp?alt=media&token=40a9618b-23d0-42d0-8727-c90f11c78b3f",
+    apple: "https://firebasestorage.googleapis.com/v0/b/knockerball-map.firebasestorage.app/o/kblocations%2Fkb-logo.webp?alt=media&token=40a9618b-23d0-42d0-8727-c90f11c78b3f",
+  }
 };
 
 export default function RootLayout({

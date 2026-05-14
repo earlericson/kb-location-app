@@ -51,7 +51,7 @@ export const LoginForm = () => {
         {/* <div className="bg-blue-50 p-4 rounded-full mb-4">
           <Lock className="text-blue-600" size={28} />
         </div> */}
-        <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/RRsoB9MnC4C0j0z8T4bT/media/67c0096028abdda0c29c34ee.png" alt="Knockerball logo" width={120} />
+        <img src="https://firebasestorage.googleapis.com/v0/b/knockerball-map.firebasestorage.app/o/kblocations%2Fkb-logo.webp?alt=media&token=40a9618b-23d0-42d0-8727-c90f11c78b3f" alt="Knockerball logo" width={120} />
         <h1 className="text-2xl font-bold text-gray-900">Knockerball Map</h1>
         <p className="text-gray-500 text-sm mt-1 text-center">
           Sign in to manage all knockerball locations.
