@@ -13,6 +13,7 @@ interface GHLSubAccount {
   country?: string;
   email?: string;
   phone?: string;
+  website?: string;
 }
 
 // 2. Define the wrapper object GHL returns
@@ -28,6 +29,7 @@ export interface MappedLocation {
   address: string;
   email: string;
   phone: string;
+  websiteUrl: string;
   status: 'draft' | 'published';
   // FieldValue is for when saving (serverTimestamp), 
   // Timestamp is for when reading from Firestore

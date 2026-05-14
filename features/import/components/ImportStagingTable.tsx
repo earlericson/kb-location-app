@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Import, Mail, MapPin, Phone, User, X } from 'lucide-react';
+import { Globe, Import, Mail, MapPin, Phone, User, X } from 'lucide-react';
 import { MappedLocation } from '@/types/location';
 
 interface Props {
@@ -123,6 +123,9 @@ export default function ImportStagingTable({ data, existingIds, onConfirm, onCan
                       </span>
                       <span className={`flex items-center gap-1.5 ${isAlreadyImported ? 'text-gray-300' : 'text-gray-600'}`}>
                         <Phone size={12} />{item.phone || 'No Phone'}
+                      </span>
+                      <span className={`flex items-center gap-1.5 ${isAlreadyImported ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <Globe size={12} />{item.websiteUrl || 'No Website'}
                       </span>
                     </td>
                     <td className="p-5 text-gray-600 leading-relaxed italic">

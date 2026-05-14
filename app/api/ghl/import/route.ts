@@ -65,6 +65,7 @@ export async function POST() {
         address: fullAddress || 'No address provided',
         email: loc.email || '',
         phone: loc.phone || '',
+        websiteUrl: loc.website || '',
         status: 'draft'
       };
     });
