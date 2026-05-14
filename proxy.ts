@@ -1,8 +1,8 @@
-// middleware.ts
+// proxy.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // 1. Get the session cookie (Firebase Auth sets this if using SSR, 
   // but for client-side SDKs, we often check a local cookie)
   const session = request.cookies.get('session');
@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// 5. Specify which paths this middleware should run on
+// 5. Specify which paths this proxy should run on
 
 export const config = {
   matcher: [
