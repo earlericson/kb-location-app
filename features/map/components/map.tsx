@@ -11,6 +11,8 @@ import {
 import { BusinessLocation } from "@/types";
 import { Globe, MapPin, Phone, Mail, ExternalLink, User, Image } from "lucide-react";
 
+export const dynamic = "force-dynamic"
+
 interface MapProps {
   businessloc: BusinessLocation;
   // selectedLocation: BusinessLocation | null;
@@ -23,7 +25,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
   // const isSelected = selectedLocation?.id === businessloc[0].id;
 
   // Use your env variable for the API Key
-  const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+  // const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
   // Move infoWindow
   const infoWindowOffset: [number, number] = [0, -45];

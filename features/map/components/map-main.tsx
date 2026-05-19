@@ -9,7 +9,7 @@ import { Map } from "@vis.gl/react-google-maps";
 interface MapMainProps {
     initialData: BusinessLocation[]
 }
-export const dynamic = "force-dynamic"
+
 export default function MapMain({ initialData }: MapMainProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedLocation, setSelectedLocation] = useState<BusinessLocation | null>(null);
