@@ -3,6 +3,8 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { BusinessLocation } from "@/types";
 import MapMain from "@/features/map/components/map-main";
 
+export const dynamic = "force-dynamic";
+
 export default async function MapPage() {
     // 1. Fetch data from Firestore (Server-side fetching)
     // const querySnapshot = await getDocs(collection(db, "locations"));

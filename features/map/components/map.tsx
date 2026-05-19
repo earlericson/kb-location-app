@@ -11,8 +11,6 @@ import {
 import { BusinessLocation } from "@/types";
 import { Globe, MapPin, Phone, Mail, ExternalLink, User, Image } from "lucide-react";
 
-export const dynamic = "force-dynamic"
-
 interface MapProps {
   businessloc: BusinessLocation;
   // selectedLocation: BusinessLocation | null;
