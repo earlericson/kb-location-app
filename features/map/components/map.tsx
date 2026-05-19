@@ -24,7 +24,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
   // const isSelected = selectedLocation?.id === businessloc[0].id;
 
   // Use your env variable for the API Key
-  const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+  // const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
   // Move infoWindow
   const infoWindowOffset: [number, number] = [0, -45];
@@ -46,7 +46,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
 
   return (
     <div className="w-full h-full overflow-hidden shadow-md border border-gray-200">
-      <APIProvider apiKey={API_KEY} libraries={['marker']}>
+      {/* <APIProvider apiKey={API_KEY} libraries={['marker']}> */}
 
         return (
         <React.Fragment key={businessloc.id}>
@@ -216,7 +216,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
           }
         </React.Fragment>
         );
-      </APIProvider>
+      {/* </APIProvider> */}
     </div >
   );
 };
