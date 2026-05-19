@@ -6,7 +6,7 @@ export function GoogleMapsProvider({ children }: { children: React.ReactNode }) 
   return (
     <APIProvider 
       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}
-      libraries={['places', 'geocoding']}
+      libraries={['places', 'geocoding', 'marker']}
     >
       {children}
     </APIProvider>

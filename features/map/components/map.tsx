@@ -45,7 +45,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
 
   return (
     <div className="w-full h-full overflow-hidden shadow-md border border-gray-200">
-      <APIProvider apiKey={API_KEY} libraries={['marker']}>
+      {/* <APIProvider apiKey={API_KEY} libraries={['marker']}> */}
 
         return (
         <React.Fragment key={businessloc.id}>
@@ -215,7 +215,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
           }
         </React.Fragment>
         );
-      </APIProvider>
+      {/* </APIProvider> */}
     </div >
   );
 };
