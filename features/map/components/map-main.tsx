@@ -22,14 +22,12 @@ export default function MapMain({ initialData }: MapMainProps) {
         );
     }, [searchQuery, initialData]);
 
-
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         // 1. Clear selection so the map doesn't "lock" to a pin
         setSelectedLocation(null);
         // 2. Update query
         setSearchQuery(e.target.value);
     }, []);
-
 
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
@@ -79,42 +77,10 @@ export default function MapMain({ initialData }: MapMainProps) {
 
         const { latitude: lat, longitude: lng } = selectedLocation;
 
-        // if (!isNaN(lat) && !isNaN(lng)) {
-        //     // 1. Smoothly pan to the center
-        //     mapInstance.panTo({ lat, lng });
-
-        //     // 2. Animate the zoom level iteratively
-        //     const targetZoom = selectedZoom;
-        //     const targetPos = { lat, lng };
-
-        //     // 1. Initial Pan to get the marker moving toward center
-        //     mapInstance.panTo(targetPos);
-
-        //     const animateZoom = () => {
-        //         const currentZoom = mapInstance.getZoom();
-        //         if (currentZoom !== undefined && currentZoom < targetZoom) {
-        //             // Increment zoom by a small amount for smoothness
-        //             mapInstance.setZoom(currentZoom + 1);
-
-        //             // Re-center during the zoom to prevent the marker from "drifting"
-        //             mapInstance.panTo(targetPos);
-
-        //             // Schedule next step if not at target
-        //             setTimeout(animateZoom, 60);
-        //         }
-        //     };
-
-        //     // Start the zoom animation after the pan begins
-        //     const timeoutId = setTimeout(animateZoom, 100);
-
-        //     return () => clearTimeout(timeoutId);
-        // }
-
-
         if (isNaN(lat) || isNaN(lng)) return;
 
         const targetPos = { lat, lng };
-        const targetZoom = selectedZoom || 15; // Fallback safely to a clean zoom level
+        const targetZoom = selectedZoom; // Fallback safely to a clean zoom level
 
         // Function that executes the zoom steps securely
         const runZoomAnimation = () => {
@@ -137,9 +103,7 @@ export default function MapMain({ initialData }: MapMainProps) {
             setTimeout(animateStep, 100);
         };
 
-
-
-        // 🌟 THE FIX: Wait for Google Maps to finish initializing bounds before moving
+        // Wait for Google Maps to finish initializing bounds before moving
         if (mapInstance.getBounds()) {
             runZoomAnimation();
         } else {
@@ -151,13 +115,9 @@ export default function MapMain({ initialData }: MapMainProps) {
             return () => google.maps.event.removeListener(listener);
         }
 
-
-
     }, [selectedLocation, mapInstance, defaultCenter, defaultZoom, selectedZoom]);
 
     return (
-        // <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] w-full overflow-hidden bg-gray-50">
-
         <div className="flex h-screen w-full overflow-hidden bg-white">
 
             {/* LEFT COLUMN: Search & List */}
@@ -189,8 +149,6 @@ export default function MapMain({ initialData }: MapMainProps) {
                             const isActive = selectedLocation?.id === loc.id;
 
                             return (
-
-
                                 <div
                                     key={loc.id}
                                     onClick={() => setSelectedLocation(loc)}
