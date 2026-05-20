@@ -158,7 +158,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                         <Mail size={12} className="shrink-0 font-bold text-gray-400" />
                         <a
                           href={`mailto:${businessloc.email}`}
-                          className="text-[14px] text-gray-700 hover:text-[#ea4335] break-all transition-colors"
+                          className="text-[14px] text-gray-700 hover:text-[#ea4335] break-all transition-colors focus-visible:outline-none"
                         >
                           {businessloc.email}
                         </a>
@@ -199,7 +199,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                     {businessloc.contentUrl && (
                       <div className="pt-2 border-t border-gray-100">
                         <button
-                          onClick={(e) => handleContentUrl(e, businessloc.contentUrl)}
+                          onClick={(e) => handleContentUrl(e, businessloc.contentUrl ?? "")}
                           className="w-full bg-black text-white uppercase text-[12px] font-bold py-2.5 px-4 hover:bg-[#2f2f2f] transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
                         >
                           <span>Read More</span>

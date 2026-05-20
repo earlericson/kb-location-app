@@ -20,7 +20,8 @@ import {
     MapPin,
     RefreshCcw,
     Map,
-    User
+    User,
+    Eye
 } from "lucide-react";
 import TableImage from "../components/table/table-image";
 import { doc, updateDoc } from "firebase/firestore";
@@ -31,7 +32,16 @@ interface BusinessTableProps {
     onEdit: (business: BusinessLocation) => void;
 }
 
-export default function BusinessTable({ onEdit }: BusinessTableProps) {
+export default function DashboardPage({ onEdit }: BusinessTableProps) {
+
+    const handleViewOnMap = (item: BusinessLocation) => {
+        // 1. Temporarily save the selected location object to browser storage
+        localStorage.setItem("selectedMapLocation", JSON.stringify(item));
+
+        // 2. Open the clean URL directly into a completely new browser tab
+        window.open("/map", "_blank");
+    };
+
 
     // State to track which specific location is being confirmed
     const [pendingLocation, setPendingLocation] = useState<{ id: string, businessName: string, address: string, latitude: number | string, longitude: number | string } | null>(null);
@@ -246,7 +256,7 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
 
                                     <td className="px-6 py-4">
                                         <div className="text-[14px] font-bold text-slate-900">{loc.businessName || "Unnamed Business"}</div>
-                                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono mt-1"><User size={10} className="text-slate-500" />{loc.businessOwner || "No Owner"}</div>
+                                        <div className="flex items-start gap-1.5 text-[11px] text-slate-500 font-mono mt-1 leading-3.5"><User size={10} className="text-slate-500 mt-0.5 shrink-0" />{loc.businessOwner || "No Owner"}</div>
                                     </td>
 
                                     <td className="px-6 py-4 space-y-1.5">
@@ -317,9 +327,21 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                     {/* ACTIONS COLUMN */}
                                     <td className="px-6 py-4">
                                         <div className="flex justify-end gap-1">
+                                            {loc.status === "published" ? (
+                                                <button
+                                                    onClick={() => handleViewOnMap(loc)}
+                                                    className="p-2 text-slate-400 hover:text-emerald-600
+                                                    hover:bg-emerald-50 rounded-lg
+                                                    transition-colors cursor-pointer"
+                                                    title="View"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+                                            ) : null}
+
                                             {loc.status === "draft" ? (
                                                 <button
-                                                    className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                     onClick={() => setPendingLocation(loc)}
                                                     title="Sync"
                                                 >
@@ -327,7 +349,7 @@ export default function BusinessTable({ onEdit }: BusinessTableProps) {
                                                 </button>
                                             ) : null}
                                             <button
-                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                className="p-2 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
                                                 onClick={() => onEdit(loc)} // We can wire this to open your drawer
                                                 title="Edit"
                                             >

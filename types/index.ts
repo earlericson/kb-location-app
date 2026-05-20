@@ -5,11 +5,11 @@ export interface BusinessLocation {
     phone: string;
     address: string;
     email: string;
-    imageUrl: string;
+    imageUrl?: string;
     latitude: number;
     longitude: number;
     websiteUrl?: string;   // Added '?' to make it optional
-    contentUrl: string;   // Added '?' to make it optional
+    contentUrl?: string;   // Added '?' to make it optional
     createdAt: any; // Firestore Timestamp
     status: 'draft' | 'published';
 }

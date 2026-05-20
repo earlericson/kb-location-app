@@ -43,6 +43,29 @@ export default function MapMain({ initialData }: MapMainProps) {
     const maxZoom = 20;
     const selectedZoom = 7;
 
+    // Define the absolute bounds for North and South America
+    const AMERICAS_BOUNDS = {
+        north: 85,
+        south: -60,
+        west: -170,
+        east: -30,
+    };
+
+    // Pull the data request in browser local storage on new window mount
+    useEffect(() => {
+        const storedItem = localStorage.getItem("selectedMapLocation");
+        if (storedItem) {
+            try {
+                const parsedLocation = JSON.parse(storedItem) as BusinessLocation;
+                setSelectedLocation(parsedLocation);
+            } catch (error) {
+                console.error("Failed to parse stored map coordinate:", error);
+            } finally {
+                // Clean up the storage key so refreshing the map tab later returns to normal
+                localStorage.removeItem("selectedMapLocation");
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (!mapInstance) return;
@@ -86,10 +109,8 @@ export default function MapMain({ initialData }: MapMainProps) {
 
             return () => clearTimeout(timeoutId);
         }
+        
     }, [selectedLocation, mapInstance, defaultCenter, defaultZoom, selectedZoom]);
-
-
-
 
     return (
         // <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] w-full overflow-hidden bg-gray-50">
@@ -206,6 +227,12 @@ export default function MapMain({ initialData }: MapMainProps) {
                     onIdle={(ev) => setMapInstance(ev.map)}
                     renderingType="VECTOR" // Forces the smoother engine
                     reuseMaps={true}
+
+                    // 2. Apply the restriction boundaries
+                    restriction={{
+                        latLngBounds: AMERICAS_BOUNDS,
+                        strictBounds: true, // Prevents users from dragging even a little bit outside the box
+                    }}
                 >
                     {initialData.map((loc) => (
                         <MapContainer

@@ -3,6 +3,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { BusinessLocation } from "@/types";
 import MapMain from "@/features/map/components/map-main";
 
+// Fetch the map data in real-time after the site live deployment 
 export const dynamic = "force-dynamic";
 
 export default async function MapPage() {
