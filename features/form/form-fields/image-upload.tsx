@@ -35,12 +35,12 @@ export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) =
                 fileType: "image/webp",   // Force WebP conversion
             };
 
-            console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
+            // console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
 
             // 3. Perform Compression & Conversion
             const compressedFile = await imageCompression(file, options);
 
-            console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
+            // console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
 
             // 4. Create Firebase Ref with .webp extension
             const fileName = `kblocations/${Date.now()}.webp`;
@@ -63,46 +63,6 @@ export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) =
         }
     };
 
-    // Remove uploaded image
-    // const handleRemove = async () => {
-    //     if (!imageUrl) return;
-
-    //     try {
-    //         // This physically deletes it from the bucket immediately
-    //         const fileRef = ref(storage, imageUrl);
-    //         await deleteObject(fileRef);
-
-    //         setValue("imageUrl", "", { shouldValidate: true, shouldDirty: true });
-    //     } catch (error) {
-    //         console.error("Cleanup failed", error);
-    //     }
-    // };
-
-
-    // Remove uploaded image and update Firestore instantly
-    // const handleRemove = async () => {
-    //     if (!imageUrl) return;
-
-    //     try {
-    //         // 1. Physically delete from Storage
-    //         const fileRef = ref(storage, imageUrl);
-    //         await deleteObject(fileRef);
-
-    //         // 2. Clear the local form state
-    //         setValue("imageUrl", "", { shouldValidate: true, shouldDirty: true });
-
-    //         // Update Firestore instantly if we have an ID
-    //         if (businessId) {
-    //             const businessRef = doc(db, "businesses", businessId);
-    //             await updateDoc(businessRef, {
-    //                 imageUrl: ""
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error("Cleanup failed", error);
-    //     }
-    // };
-
     const handleRemove = async () => {
         if (!imageUrl) return;
 
@@ -120,8 +80,6 @@ export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) =
                 await updateDoc(businessRef, { imageUrl: "" });
                 console.log("Firestore synced successfully");
             }
-
-            console.log(`Business ID:`, {businessId})
         } catch (error) {
             console.error("Cleanup failed", error);
         }
@@ -154,36 +112,6 @@ export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) =
                 </div>
                 {errors.imageUrl && <p className="text-xs text-red-500 mt-1">{errors.imageUrl.message as string}</p>}
             </div>
-
-
-            {/* <div className="space-y-4 w-full">
-            <div className="flex items-center gap-4">
-                {value ? (
-                    <div className="relative w-40 h-40 rounded-xl overflow-hidden border border-slate-200">
-                        <img src={value} alt="Preview" className="object-cover w-full h-full" />
-                        <button
-                            onClick={onRemove}
-                            type="button"
-                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                        >
-                            <X size={14} />
-                        </button>
-                    </div>
-                ) : (
-                    <label className="w-40 h-40 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 transition-all group">
-                        {isUploading ? (
-                            <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-                        ) : (
-                            <>
-                                <ImageIcon className="h-8 w-8 text-slate-400 group-hover:text-blue-500" />
-                                <span className="text-xs text-slate-500 mt-2">Upload Photo</span>
-                            </>
-                        )}
-                        <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isUploading} />
-                    </label>
-                )}
-            </div>
-        </div> */}
         </>
 
 

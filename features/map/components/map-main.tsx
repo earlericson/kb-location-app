@@ -79,37 +79,80 @@ export default function MapMain({ initialData }: MapMainProps) {
 
         const { latitude: lat, longitude: lng } = selectedLocation;
 
-        if (!isNaN(lat) && !isNaN(lng)) {
-            // 1. Smoothly pan to the center
-            mapInstance.panTo({ lat, lng });
+        // if (!isNaN(lat) && !isNaN(lng)) {
+        //     // 1. Smoothly pan to the center
+        //     mapInstance.panTo({ lat, lng });
 
-            // 2. Animate the zoom level iteratively
-            const targetZoom = selectedZoom;
-            const targetPos = { lat, lng };
+        //     // 2. Animate the zoom level iteratively
+        //     const targetZoom = selectedZoom;
+        //     const targetPos = { lat, lng };
 
-            // 1. Initial Pan to get the marker moving toward center
+        //     // 1. Initial Pan to get the marker moving toward center
+        //     mapInstance.panTo(targetPos);
+
+        //     const animateZoom = () => {
+        //         const currentZoom = mapInstance.getZoom();
+        //         if (currentZoom !== undefined && currentZoom < targetZoom) {
+        //             // Increment zoom by a small amount for smoothness
+        //             mapInstance.setZoom(currentZoom + 1);
+
+        //             // Re-center during the zoom to prevent the marker from "drifting"
+        //             mapInstance.panTo(targetPos);
+
+        //             // Schedule next step if not at target
+        //             setTimeout(animateZoom, 60);
+        //         }
+        //     };
+
+        //     // Start the zoom animation after the pan begins
+        //     const timeoutId = setTimeout(animateZoom, 100);
+
+        //     return () => clearTimeout(timeoutId);
+        // }
+
+
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        const targetPos = { lat, lng };
+        const targetZoom = selectedZoom || 15; // Fallback safely to a clean zoom level
+
+        // Function that executes the zoom steps securely
+        const runZoomAnimation = () => {
+            // 1. Instantly drop anchor directly over the coordinates
             mapInstance.panTo(targetPos);
 
-            const animateZoom = () => {
+            const animateStep = () => {
                 const currentZoom = mapInstance.getZoom();
                 if (currentZoom !== undefined && currentZoom < targetZoom) {
-                    // Increment zoom by a small amount for smoothness
+                    // Increment cleanly
                     mapInstance.setZoom(currentZoom + 1);
-
-                    // Re-center during the zoom to prevent the marker from "drifting"
+                    // Keep locked to center so boundaries don't deflect the pin
                     mapInstance.panTo(targetPos);
 
-                    // Schedule next step if not at target
-                    setTimeout(animateZoom, 60);
+                    setTimeout(animateStep, 40); // 40ms gives restriction engine time to breathe
                 }
             };
 
-            // Start the zoom animation after the pan begins
-            const timeoutId = setTimeout(animateZoom, 100);
+            // Fire the incremental zoom sequence after primary panning completes
+            setTimeout(animateStep, 100);
+        };
 
-            return () => clearTimeout(timeoutId);
+
+
+        // 🌟 THE FIX: Wait for Google Maps to finish initializing bounds before moving
+        if (mapInstance.getBounds()) {
+            runZoomAnimation();
+        } else {
+            // If map is still loading, wait for the 'idle' status listener to signal safety
+            const listener = mapInstance.addListener("idle", () => {
+                runZoomAnimation();
+                google.maps.event.removeListener(listener); // Clean up immediately
+            });
+            return () => google.maps.event.removeListener(listener);
         }
-        
+
+
+
     }, [selectedLocation, mapInstance, defaultCenter, defaultZoom, selectedZoom]);
 
     return (
