@@ -68,8 +68,8 @@ export const ImageUpload = ({ businessId, initialImageUrl }: ImageUploadProps) =
 
         try {
             // Storage deletion
-            const fileRef = ref(storage, imageUrl);
-            await deleteObject(fileRef);
+            // const fileRef = ref(storage, imageUrl);
+            // await deleteObject(fileRef);
 
             // Local UI update
             setValue("imageUrl", "", { shouldValidate: true, shouldDirty: true });

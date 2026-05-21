@@ -152,7 +152,6 @@ export default function BusinessFormFields({ isLoading, isEditing, businessId, i
           <label className="text-sm font-semibold text-slate-700">Image</label>
           <ImageUpload
             businessId={businessId}
-          // initialImageUrl={defaultValues?.imageUrl}
           />
         </div>
       </div>
