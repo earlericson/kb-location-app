@@ -40,7 +40,7 @@ export const ActionMenu = ({ options }: ActionMenuProps) => {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 px-4 py-2 w-40 bg-white rounded-sm shadow-lg border border-gray-100 z-50 ">
+                <div className="absolute right-0 px-4 py-2 w-30 bg-white rounded-sm shadow-lg border border-gray-100 z-50 ">
                     {options.map((option, index) => (
                         <button
                             key={index}

@@ -11,6 +11,7 @@ import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { getCoordinates } from "@/lib/geocoding";
 import { ImageUpload } from "./form-fields/image-upload";
 import toast from "react-hot-toast";
+import { logActivity } from "@/lib/logger";
 
 interface BusinessFormProps {
   onSubmit: (data: BusinessFormValues) => Promise<void>;
@@ -32,7 +33,7 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues, busin
       latitude: 0,
       longitude: 0,
       imageUrl: "",
-      status: "draft"
+      // status: "active"
     },
   });
 
@@ -82,6 +83,9 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues, busin
       // 1. Wait for the database submission to complete
       await onSubmit(data);
 
+      // Trigger log
+      await logActivity('Created', data.businessName);
+
       // 2. Explicitly reset the form to empty values
       methods.reset();
 
@@ -95,17 +99,21 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues, busin
       // We spread the existing data and explicitly set status to "draft"
       const updatedPayload = {
         ...pendingData,
-        status: "draft" as const,
+        isSynced: false,
+        // status: "active" as const,
         updatedAt: new Date().toISOString() // Good for tracking when the edit happened
       };
 
       await onSubmit(updatedPayload);
 
+      // Trigger log
+      await logActivity('Updated', updatedPayload.businessName);
+
       setShowUpdateModal(false);
       setPendingData(null);
 
       // Optional: Toast to let the user know they need to sync again
-      toast.success("The changes were saved as Draft!");
+      toast.success("The location was updated. Sync now!");
     }
   };
   return (

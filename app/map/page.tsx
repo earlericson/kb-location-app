@@ -1,7 +1,7 @@
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { BusinessLocation } from "@/types";
-import MapMain from "@/features/map/components/map-main";
+import MapMain from "@/features/map/map-main";
 
 // Fetch the map data in real-time after the site live deployment 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function MapPage() {
     // ONLY fetch what has been explicitly 'published' via the Sync button
     const q = query(
         collection(db, "locations"), 
-        where("status", "==", "published")
+        where("isSynced", "==", true)
     );
     
     const querySnapshot = await getDocs(q);

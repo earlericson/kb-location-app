@@ -6,7 +6,8 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backup": "gcloud storage rsync -r . gs://knockerball-app-backup-2026"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

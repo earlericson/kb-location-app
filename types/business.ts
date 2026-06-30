@@ -19,8 +19,13 @@ export const BusinessSchema = z.object({
   // .or(z.literal("")) allows the input to be an empty string without error
   websiteUrl: z.string().url("Invalid website URL").optional().or(z.literal("")),
   contentUrl: z.string().url("Invalid content URL").optional().or(z.literal("")),
-  // status: z.string().catch,
-  status: z.enum(["draft", "published"]).catch("draft"),
+  // status: z.enum(["Active", "For Sale", "Available"])
+  //   .catch("Available"), // If the input is invalid, default to 'Available' instead of crashing
+  // The most robust way to handle requirements AND custom errors:
+  status: z.string().refine((val) => ["Active", "For Sale", "Available"].includes(val), {
+    message: "Please select a valid status",
+  }),
+  isSynced: z.boolean().catch(false),
 });
 
 // 2. The Form Values Type (Inferred from Schema)

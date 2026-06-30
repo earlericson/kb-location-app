@@ -1,20 +1,17 @@
 "use client";
 
+import { useRadialChartData } from '@/hooks/use-radial-bar';
+import { RadialBarProps } from '@/types';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 
-interface RadialStatProps {
-    label: string;
-    value: number;
-    total: number;
-    color: string;
-    textColor?: string;
-    icon: React.ReactNode;
-}
+export const RadialStatBox = ({ status, label, color, textColor, icon }: RadialBarProps) => {
 
-export const RadialStatBox = ({ label, value, total, color, textColor, icon }: RadialStatProps) => {
-    const percentage = total > 0 ? (value / total) * 100 : 0;
-    const data = [{ name: label, value: percentage }];
+    // The component now handles its own data fetching
+    const { published, draft, total } = useRadialChartData('locations');
 
+    // Select the value based on the prop passed to the component
+    const value = status === 'published' ? published : draft;
+    const data = [{ name: status, value: value, fill: color }];
     return (
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between gap-3">
             <div>
@@ -38,7 +35,7 @@ export const RadialStatBox = ({ label, value, total, color, textColor, icon }: R
                     >
                         <circle cx="50%" cy="50%" r="32%" fill={color} fillOpacity={0.3} />
 
-                        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                        <PolarAngleAxis type="number" domain={[0, total || 1]} angleAxisId={0} tick={false} />
                         <RadialBar
                             background={{ fill: '#f3f4f6' }}
                             dataKey="value"

@@ -27,10 +27,25 @@ import TableImage from "../components/table/table-image";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
+import { logActivity } from "@/lib/logger";
+import { statusStyles } from "../map/components/map-marker-color";
 
 interface BusinessTableProps {
     onEdit: (business: BusinessLocation) => void;
 }
+
+// 1. Define your status styles in a config object
+// const statusStyles: Record<string, string> = {
+//     'Active': 'bg-red-50 text-red-600 border-red-200',
+//     'For Sale': 'bg-orange-50 text-orange-700 border-orange-200',
+//     'Available': 'bg-green-50 text-green-700 border-green-200',
+// };
+
+// const dotColors: Record<string, string> = {
+//     'Active': 'bg-red-600',
+//     'For Sale': 'bg-orange-500',
+//     'Available': 'bg-green-600',
+// };
 
 export default function DashboardPage({ onEdit }: BusinessTableProps) {
 
@@ -178,8 +193,10 @@ export default function DashboardPage({ onEdit }: BusinessTableProps) {
             // 2. Perform the Firestore update
             const docRef = doc(db, "locations", id);
             await updateDoc(docRef, {
-                status: "published"
+                isSynced: true,
             });
+
+            await logActivity('Synced', businessName);
 
             toast.success(`${businessName} is now live on the map!`);
             setPendingLocation(null);
@@ -241,131 +258,142 @@ export default function DashboardPage({ onEdit }: BusinessTableProps) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
+                        {/* {paginatedData.length > 0 ? (
+                            paginatedData.map((loc) => ( */}
                         {paginatedData.length > 0 ? (
-                            paginatedData.map((loc) => (
-                                <tr key={loc.id} className="hover:bg-slate-50/50 transition-colors">
+                            paginatedData.map((loc) => {
+                                // Logic: Centralized configuration lookup
+                                const config = statusStyles[loc.status as keyof typeof statusStyles] || {
+                                    textBadge: 'bg-gray-50 text-gray-600 border-gray-200',
+                                    dot: 'bg-gray-400'
+                                };
+                                return (
+                                    <tr key={loc.id} className="hover:bg-slate-50/50 transition-colors">
 
-                                    <td className="px-6 py-4">
-                                        <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
-                                            <TableImage
-                                                src={loc.imageUrl}
-                                                alt={loc.businessName}
-                                            />
-                                        </div>
-                                    </td>
+                                        <td className="px-6 py-4">
+                                            <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                                                <TableImage
+                                                    src={loc.imageUrl}
+                                                    alt={loc.businessName}
+                                                />
+                                            </div>
+                                        </td>
 
-                                    <td className="px-6 py-4">
-                                        <div className="text-[14px] font-bold text-slate-900">{loc.businessName || "Unnamed Business"}</div>
-                                        <div className="flex items-start gap-1.5 text-[11px] text-slate-500 font-mono mt-1 leading-3.5"><User size={10} className="text-slate-500 mt-0.5 shrink-0" />{loc.businessOwner || "No Owner"}</div>
-                                    </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-[14px] font-bold text-slate-900">{loc.businessName || "Unnamed Business"}</div>
+                                            <div className="flex items-start gap-1.5 text-[11px] text-slate-500 font-mono mt-1 leading-3.5"><User size={10} className="text-slate-500 mt-0.5 shrink-0" />{loc.businessOwner || "No Owner"}</div>
+                                        </td>
 
-                                    <td className="px-6 py-4 space-y-1.5">
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <Mail size={14} className="text-blue-500/70" />
-                                            {loc.email || "No email"}
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                                            <Phone size={14} className="text-green-600/70" />
-                                            <span>{loc.phone || "No phone"}</span>
-                                        </div>
+                                        <td className="px-6 py-4 space-y-1.5">
+                                            <div className="flex items-center gap-2 text-sm text-black">
+                                                <Mail size={14} className="text-blue-500/70" />
+                                                {loc.email || "No email"}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-black">
+                                                <Phone size={14} className="text-green-600/70" />
+                                                <span>{loc.phone || "No phone"}</span>
+                                            </div>
 
-                                        <div className="flex items-start gap-2 text-sm text-slate-600">
-                                            <MapPin size={14} className=" text-slate-400 mt-0.5 shrink-0" />
-                                            <span>{loc.address}</span>
-                                        </div>
-                                    </td>
+                                            <div className="flex items-start gap-2 text-sm text-black">
+                                                <MapPin size={14} className=" text-slate-400 mt-0.5 shrink-0" />
+                                                <span>{loc.address}</span>
+                                            </div>
+                                        </td>
 
-                                    <td className="px-6 py-4 text-sm font-mono text-slate-500">
-                                        <div><label className="text-[11px]">Lat:</label>{loc.latitude}</div>
-                                        <div>
-                                            <label className="text-[11px]">Lng:</label>{loc.longitude}
-                                        </div>
-                                    </td>
+                                        <td className="px-6 py-4 text-sm font-mono text-black">
+                                            <div><label className="text-[11px]">Lat:</label>{loc.latitude}</div>
+                                            <div>
+                                                <label className="text-[11px]">Lng:</label>{loc.longitude}
+                                            </div>
+                                        </td>
 
-                                    {/* LINKS COLUMN WITH ICONS */}
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center gap-3">
-                                            {loc.websiteUrl && (
-                                                <a
-                                                    href={loc.websiteUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-slate-400 hover:text-blue-600 transition-colors"
-                                                    title="Visit Website"
-                                                >
-                                                    <Globe size={18} />
-                                                </a>
-                                            )}
-                                            {loc.contentUrl && (
-                                                <a
-                                                    href={loc.contentUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-slate-400 hover:text-indigo-600 transition-colors"
-                                                    title="View Content Source"
-                                                >
-                                                    <FileText size={18} />
-                                                </a>
-                                            )}
-                                        </div>
-                                    </td>
+                                        {/* LINKS COLUMN WITH ICONS */}
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-center gap-3">
+                                                {loc.websiteUrl && (
+                                                    <a
+                                                        href={loc.websiteUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-slate-400 hover:text-blue-600 transition-colors"
+                                                        title="Visit Website"
+                                                    >
+                                                        <Globe size={18} />
+                                                    </a>
+                                                )}
+                                                {loc.contentUrl && (
+                                                    <a
+                                                        href={loc.contentUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-slate-400 hover:text-indigo-600 transition-colors"
+                                                        title="View Content Source"
+                                                    >
+                                                        <FileText size={18} />
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </td>
 
-                                    <td className="px-6 py-4">
-                                        <div className="flex justify-center">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${loc.status === "published"
-                                                ? "bg-emerald-50 text-emerald-600  border-emerald-200"
-                                                : "bg-amber-50 text-amber-700 border-amber-200"
-                                                }`}>
-                                                {/* Dot indicator for extra visual cue */}
-                                                <span className={`w-1.5 h-1.5 mr-1.5 rounded-full ${loc.status === "published" ? "bg-emerald-600" : "bg-amber-500"
-                                                    }`}></span>
-                                                {loc.status.charAt(0).toUpperCase() + loc.status.slice(1)}
-                                            </span>
-                                        </div>
-                                    </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex justify-center">
+                                                {/* <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusStyles[loc.status] || 'bg-gray-50 text-gray-600 border-gray-200'}`}> */}
+                                                {/* Dot indicator */}
+                                                {/* <span className={`w-1.5 h-1.5 mr-1.5 rounded-full ${dotColors[loc.status] || 'bg-gray-400'}`}></span>
+                                                    {loc.status}
+                                                </span> */}
 
-                                    {/* ACTIONS COLUMN */}
-                                    <td className="px-6 py-4">
-                                        <div className="flex justify-end gap-1">
-                                            {loc.status === "published" ? (
+
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.textBadge}`}>
+                                                    {/* Dot indicator */}
+                                                    <span className={`w-1.5 h-1.5 mr-1.5 rounded-full ${config.dot}`}></span>
+                                                    {loc.status}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        {/* ACTIONS COLUMN */}
+                                        <td className="px-6 py-4">
+                                            <div className="flex justify-end gap-1">
+
+                                                {loc.isSynced ? (
+                                                    <button
+                                                        onClick={() => handleViewOnMap(loc)}
+                                                        className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer"
+                                                        title="View on Map"
+                                                    >
+                                                        <Eye size={18} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                                                        onClick={() => setPendingLocation(loc)}
+                                                        title="Sync to Map"
+                                                    >
+                                                        <RefreshCcw size={18} />
+                                                    </button>
+                                                )}
+
+
                                                 <button
-                                                    onClick={() => handleViewOnMap(loc)}
-                                                    className="p-2 text-slate-400 hover:text-emerald-600
-                                                    hover:bg-emerald-50 rounded-lg
-                                                    transition-colors cursor-pointer"
-                                                    title="View"
+                                                    className="p-2 text-slate-400 hover:text-amber-700 hover:bg-amber-100 rounded-lg transition-colors cursor-pointer"
+                                                    onClick={() => onEdit(loc)} // We can wire this to open your drawer
+                                                    title="Edit"
                                                 >
-                                                    <Eye size={18} />
+                                                    <Pencil size={18} />
                                                 </button>
-                                            ) : null}
-
-                                            {loc.status === "draft" ? (
                                                 <button
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                                    onClick={() => setPendingLocation(loc)}
-                                                    title="Sync"
+                                                    onClick={() => loc.id && openDeleteModal(loc.id)}
+                                                    className="p-2 text-slate-400 hover:text-red-600 cursor-pointer"
+                                                    title="Delete"
                                                 >
-                                                    <RefreshCcw size={18} />
+                                                    <Trash2 size={18} />
                                                 </button>
-                                            ) : null}
-                                            <button
-                                                className="p-2 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                                                onClick={() => onEdit(loc)} // We can wire this to open your drawer
-                                                title="Edit"
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => loc.id && openDeleteModal(loc.id)}
-                                                className="p-2 text-slate-400 hover:text-red-600 cursor-pointer"
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })
                         ) : (
                             <tr>
                                 <td colSpan={7} className="px-6 py-12 text-center text-slate-400">

@@ -50,6 +50,11 @@
   animation: sonar-pulse 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 } */
 
+@theme {
+  /* Define your custom animation here */
+  --animate-spin: spin 1s linear infinite;
+}
+
 /* Adjusted the height of InfoWindow under AdvancedMarker */
 .gm-style-iw-c, .gm-style-iw-d {
   max-height: max-content !important;
