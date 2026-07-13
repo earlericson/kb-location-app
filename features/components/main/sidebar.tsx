@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { usePathname } from 'next/navigation';
-import { Activity, CheckCircle2, ChevronDown, ChevronRight, ChevronUp, FileEdit, LayoutDashboard, List, LogOut, LucideIcon, Map, MapPin, Menu, PlusCircle, X } from 'lucide-react';
+import { Activity, CheckCircle2, ChevronDown, ChevronUp, LayoutDashboard, List, LucideIcon, Map, MapPin, Menu, X, Tag, Home } from 'lucide-react';
 import Link from 'next/link';
 import { useSidebar } from '@/context/sidebar-context';
 import { LogoutButton } from '@/features/auth/logout-btn';
@@ -14,6 +14,7 @@ interface NavItem {
     icon: LucideIcon;
     isParent?: boolean;
     children?: NavItem[]; // Recursively allows children
+    external?: boolean;
 }
 
 export const Sidebar = () => {
@@ -30,13 +31,13 @@ export const Sidebar = () => {
             icon: MapPin,
             isParent: true,
             children: [
-                { name: 'All Locations', href: '/locations', icon: List },
-                { name: 'Published', href: '/published', icon: CheckCircle2 },
-                { name: 'Drafts', href: '/drafts', icon: FileEdit },
-                { name: 'Add New', href: '/add', icon: PlusCircle },
+                { name: 'All', href: '/locations', icon: List },
+                { name: 'Active', href: '/active', icon: CheckCircle2 },
+                { name: 'For Sale', href: '/forsale', icon: Tag },
+                { name: 'Available', href: '/available', icon: Home },
             ]
         },
-        { name: 'My Map', href: '/map', icon: Map },
+        { name: 'My Map', href: '/map', icon: Map, external: true },
         { name: 'Activity Logs', href: '/logs', icon: Activity },
     ];
 
@@ -94,10 +95,10 @@ export const Sidebar = () => {
                                 <div key={item.name} title={!isSidebarOpen ? item.name : ""} className="w-full">
                                     <button
                                         onClick={() => setIsLocationsOpen(!isLocationsOpen)}
-                                        className="w-full flex items-center justify-between px-3 py-3 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                        className={`w-full flex items-center px-3 py-3 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-50 ${!isSidebarOpen ? 'justify-center' : 'justify-between'}`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <Icon size={20} className="min-w-[20px]" />
+                                            <Icon size={20} className="min-w-5" />
                                             {isSidebarOpen && <span className="text-sm font-medium">{item.name}</span>}
                                         </div>
                                         {isSidebarOpen && (isLocationsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
@@ -122,7 +123,7 @@ export const Sidebar = () => {
                                         ${!isSidebarOpen ? 'justify-center px-0' : ''}
                                     `}
                                                     >
-                                                        <ChildIcon size={16} className="min-w-[16px]" />
+                                                        <ChildIcon size={16} className="min-w-4" />
                                                         {isSidebarOpen && <span>{child.name}</span>}
                                                     </Link>
                                                 );
@@ -138,13 +139,15 @@ export const Sidebar = () => {
                             <Link
                                 key={item.name}
                                 href={item.href || "#"}
+                                target={item.external ? "_blank" : "_self"}
+                                rel={item.external ? "noopener noreferrer" : undefined}
                                 title={!isSidebarOpen ? item.name : ""}
                                 className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors ${pathname === item.href
                                     ? 'bg-red-50 text-red-600'
                                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                                     } ${!isSidebarOpen ? 'justify-center' : ''}`}
                             >
-                                <Icon size={20} className="min-w-[20px]" />
+                                <Icon size={20} className="min-w-5" />
                                 {isSidebarOpen && <span>{item.name}</span>}
                             </Link>
                         );

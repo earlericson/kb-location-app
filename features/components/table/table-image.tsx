@@ -23,7 +23,7 @@ export default function TableImage({ src, alt }: TableImageProps) {
 
   if (!src || hasError) {
     return (
-      <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+      <div className="w-full h-full rounded-lg flex items-center justify-center shrink-0">
         <ImageIcon className="text-slate-400" size={20} />
       </div>
     );
@@ -33,7 +33,7 @@ export default function TableImage({ src, alt }: TableImageProps) {
     <>
       {/* Thumbnail */}
       <div 
-        className="relative w-12 h-12 rounded-lg border border-slate-200 overflow-hidden shrink-0 cursor-zoom-in group/img"
+        className="relative w-full h-full rounded-lg overflow-hidden shrink-0 cursor-zoom-in group/img"
         onClick={() => setIsPreviewOpen(true)}
       >
         <img

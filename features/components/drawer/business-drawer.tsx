@@ -25,14 +25,14 @@ export default function BusinessDrawer({ isOpen, onClose, title, children }: Bus
     <>
       {/* Dark Overlay */}
       <div 
-        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity duration-300 ${
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         onClick={onClose}
       />
 
       {/* Slide-out Panel */}
-      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-70 shadow-2xl transform transition-transform duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "translate-x-full"
       }`}>
         <div className="flex flex-col h-full">

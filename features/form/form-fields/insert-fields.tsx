@@ -5,7 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { BusinessFormValues } from "@/types/business";
 import { ImageUpload } from "./image-upload";
 import { MapPin } from "lucide-react";
-import { BusinessStatus, statusStyles } from "@/features/map/components/map-marker-color";
+import { BusinessStatus, STATUS_DISPLAY_MAP, statusStyles } from "@/features/map/components/map-marker-color";
 
 // 1. Add isEditing to the interface
 interface FieldsProps {
@@ -27,12 +27,12 @@ interface FieldsProps {
 
 // Predefined contact values
 const CONTACT_DEFAULTS = {
-  'For Sale': {
+  'forsale': {
     email: 'info@knockerball.com',
     phone: '800-583-7250',
     websiteUrl: 'https://knockerball.com/'
   },
-  'Available': {
+  'available': {
     email: 'info@knockerball.com',
     phone: '800-583-7250',
     websiteUrl: 'https://knockerball.com/'
@@ -69,21 +69,21 @@ export default function BusinessFormFields({ isLoading, isEditing, businessId, i
     // 1. Identify if we are in an auto-populated state
     // Checking if the email AND phone match the "For Sale" defaults
     const isCurrentlySales =
-      currentEmail === CONTACT_DEFAULTS['For Sale'].email &&
-      currentPhone === CONTACT_DEFAULTS['For Sale'].phone &&
-      currentWebsiteUrl === CONTACT_DEFAULTS['For Sale'].websiteUrl;
+      currentEmail === CONTACT_DEFAULTS['forsale'].email &&
+      currentPhone === CONTACT_DEFAULTS['forsale'].phone &&
+      currentWebsiteUrl === CONTACT_DEFAULTS['forsale'].websiteUrl;
 
     // Checking if the email AND phone match the "Available" defaults
     const isCurrentlyLeasing =
-      currentEmail === CONTACT_DEFAULTS['Available'].email &&
-      currentPhone === CONTACT_DEFAULTS['Available'].phone &&
-      currentWebsiteUrl === CONTACT_DEFAULTS['Available'].websiteUrl;
+      currentEmail === CONTACT_DEFAULTS['available'].email &&
+      currentPhone === CONTACT_DEFAULTS['available'].phone &&
+      currentWebsiteUrl === CONTACT_DEFAULTS['available'].websiteUrl;
 
     // The system state is "auto-populated" if it matches either, or if both are empty
     const isAutoPopulated = isCurrentlySales || isCurrentlyLeasing || (!currentEmail && !currentPhone && !currentWebsiteUrl);
 
     // 2. Logic for Active
-    if (selectedStatus === 'Active') {
+    if (selectedStatus === 'active') {
       if (currentEmail || currentPhone || currentWebsiteUrl) {
         setValue("email", "");
         setValue("phone", "");
@@ -151,12 +151,16 @@ export default function BusinessFormFields({ isLoading, isEditing, businessId, i
               ))} */}
 
               {/* Generate options dynamically from the keys of your style config */}
-              {(Object.keys(statusStyles) as BusinessStatus[]).map((status) => (
+              {/* {(Object.keys(statusStyles) as BusinessStatus[]).map((status) => (
                 <option key={status} value={status} className="text-gray-900">
                   {status}
                 </option>
+              ))} */}
+              {Object.entries(STATUS_DISPLAY_MAP).map(([key, label]) => (
+                <option key={key} value={key} className="text-gray-900">
+                  {label}
+                </option>
               ))}
-
 
 
             </select>

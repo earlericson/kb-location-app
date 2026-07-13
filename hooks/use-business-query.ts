@@ -1,19 +1,22 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { 
-  collection, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  QuerySnapshot, 
-  DocumentData 
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  QuerySnapshot,
+  DocumentData,
+  where
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { BusinessLocation } from "@/types";
 
-export function useBusinessQuery() {
+type BusinessStatus = BusinessLocation['status']
+
+export function useBusinessQuery(status: 'all' | BusinessStatus) {
   const queryClient = useQueryClient();
-  const queryKey = ["business-locations"];
+  const queryKey = ["business-status", status];
 
   // 1. Define the TanStack Query
   const queryInfo = useQuery<BusinessLocation[]>({
@@ -31,7 +34,12 @@ export function useBusinessQuery() {
   // 2. Set up the Real-time Listener
   useEffect(() => {
     // Reference the collection and sort by creation date
-    const q = query(collection(db, "locations"), orderBy("createdAt", "desc"));
+    let q = query(collection(db, "locations"), orderBy("createdAt", "desc"));
+
+    // Add status filter if it's not "all"
+    if (status !== 'all') {
+      q = query(q, where("status", "==", status));
+    }
 
     const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
       const locations = snapshot.docs.map((doc) => ({
@@ -49,7 +57,7 @@ export function useBusinessQuery() {
 
     // Cleanup: Stop listening when the component unmounts
     return () => unsubscribe();
-  }, [queryClient, queryKey]);
+  }, [queryClient, status, queryKey]);
 
   return queryInfo;
 }

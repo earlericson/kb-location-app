@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { Timestamp } from "firebase/firestore";
 
 // 1. The Schema (For Form Validation & Coercion)
 export const BusinessSchema = z.object({
+  id: z.string().optional(),
   businessName: z.string().min(2, "Business Name is required"),
   businessOwner: z.string().min(2, "Business Owner is required"),
   phone: z.string().min(5, "Valid phone number required"),
@@ -22,7 +24,7 @@ export const BusinessSchema = z.object({
   // status: z.enum(["Active", "For Sale", "Available"])
   //   .catch("Available"), // If the input is invalid, default to 'Available' instead of crashing
   // The most robust way to handle requirements AND custom errors:
-  status: z.string().refine((val) => ["Active", "For Sale", "Available"].includes(val), {
+  status: z.string().refine((val) => ["active", "forsale", "available"].includes(val), {
     message: "Please select a valid status",
   }),
   isSynced: z.boolean().catch(false),
@@ -34,5 +36,6 @@ export type BusinessFormValues = z.infer<typeof BusinessSchema>;
 // 3. The Database Interface (Final Data Structure)
 export interface BusinessLocation extends BusinessFormValues {
   id: string;
-  createdAt: any; // Firestore Timestamp
+  createdAt: Timestamp; // Firestore Timestamp
+  // createdAt: any; 
 }

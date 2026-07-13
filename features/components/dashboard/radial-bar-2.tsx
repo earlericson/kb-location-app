@@ -4,31 +4,25 @@ import { useBreakPoint } from '@/hooks/use-break-point';
 import { RadialBarProps } from '@/types';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 
-export const RadialStatBox = ({ label, color, textColor, icon, value, total }: RadialBarProps) => {
+export const RadialStatBox2 = ({ label, color, textColor, icon, value, total }: RadialBarProps) => {
     // Calculate percentage for the bar or visual effect if needed
     const data = [{ name: label, value: value, fill: color }];
 
-    const isMobile = useBreakPoint();
+    // const isMobile = useBreakPoint();
 
-    // Define responsive configuration
-    const chartConfig = isMobile
-        ? { innerRadius: "75%", barSize: 7 }
-        : { innerRadius: "65%", barSize: 10 };
+    // // Define responsive configuration
+    // const chartConfig = isMobile
+    //     ? { innerRadius: "50%", barSize: 6 }
+    //     : { innerRadius: "70%", barSize: 10 };
 
     return (
-        <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col-reverse md:flex-row items-center justify-between gap-2">
-            <div className="flex flex-col items-center md:items-start">
-                <div className="mb-3 text-gray-400">{icon}</div>
-                <p className=" text-xs md:text-sm text-gray-500 font-medium uppercase">{label}</p>
-                <p className={`text-2xl md:text-3xl font-bold mt-1 ${textColor}`}>{value}</p>
-            </div>
-
-            <div className="h-20 md:h-32 w-20 md:w-32">
+        <div className="flex flex-col w-full bg-white p-4 rounded-2xl border border-gray-100 shadow-sm  items-center justify-center">
+            <div className="h-20 w-20">
                 <ResponsiveContainer width="100%" height="100%">
                     <RadialBarChart
-                        innerRadius={chartConfig.innerRadius}
+                        innerRadius="75%"
                         outerRadius="100%"
-                        barSize={chartConfig.barSize}
+                        barSize={7}
                         data={data}
                         startAngle={90}
                         endAngle={-270}
@@ -43,6 +37,11 @@ export const RadialStatBox = ({ label, color, textColor, icon, value, total }: R
                         />
                     </RadialBarChart>
                 </ResponsiveContainer>
+            </div>
+            <div className="flex flex-col items-center gap-2 mt-2">
+                <div className="text-gray-400">{icon}</div>
+                <p className="text-xs text-gray-500 font-medium uppercase">{label}</p>
+                <p className={`text-2xl font-bold ${textColor}`}>{value}</p>
             </div>
         </div>
     );

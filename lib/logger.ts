@@ -1,14 +1,20 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export const logActivity = async (action: 'Created' | 'Updated' | 'Synced' , businessName: string) => {
-  try {
-    await addDoc(collection(db, 'activity_logs'), {
-      action,
-      businessName,
-      timestamp: serverTimestamp(),
-    });
-  } catch (error) {
-    console.error("Error logging activity:", error);
-  }
+// lib/logger.ts
+export const logActivity = async (action: 'Created' | 'Updated' | 'Imported' | 'Synced' | 'Deleted', businessName: string) => {
+  const messages = {
+    'Created': `New location was added!`,
+    'Updated': `The location was updated!`,
+    'Imported': `New location was imported!`,
+    'Synced': `The location synced successfully!`,
+    'Deleted': `The location was removed!`
+  };
+
+  await addDoc(collection(db, 'activity_logs'), {
+    action,
+    businessName,
+    message: messages[action], // Save the pre-built string
+    timestamp: serverTimestamp(),
+  });
 };

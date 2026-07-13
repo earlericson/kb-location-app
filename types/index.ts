@@ -11,9 +11,12 @@ export interface BusinessLocation {
     websiteUrl?: string;   // Added '?' to make it optional
     contentUrl?: string;   // Added '?' to make it optional
     createdAt: any; // Firestore Timestamp
+    updatedAt?: any;
     // status: 'draft' | 'published';
-    status: 'Active' | 'For Sale' | 'Available';
+    // status: 'Active' | 'For Sale' | 'Available';
+    status: 'active' | 'forsale' | 'available' | (string & {});
     isSynced: boolean;
+
 }
 
 export interface AreaChartData {
@@ -25,32 +28,34 @@ export interface AreaChartData {
 }
 
 export interface RadialBarData {
-    published: number;
-    draft: number;
     total: number;
+    [key: string]: number; // Allows any status key to be counted dynamically
 }
 
 export interface RadialBarProps {
     label: string;
+    status: string;
     color: string;
-    textColor?: string;
+    textColor: string;
     icon: React.ReactNode;
-    status: 'draft' | 'published';
+    value: number;
+    total: number;
+
 }
 
 export interface RecentLocationData {
     id: string;
     businessName: string;
-    latitude: number;
-    longitude: number;
-    status: 'draft' | 'published';
+    imageUrl?: string;
+    status: string;
     createdAt: Date;
 }
 
 export interface ActivityLog {
     id: string;
-    action: 'Created' | 'Updated' | 'Deleted' | 'Synced';
+    action: 'Created' | 'Updated' | 'Deleted' | 'Imported' | 'Synced';
     businessName: string;
+    message: string;
     timestamp: Date;
     user?: string; // Optional: if you track who did the action
 }

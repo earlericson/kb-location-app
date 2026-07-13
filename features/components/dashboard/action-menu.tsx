@@ -48,7 +48,7 @@ export const ActionMenu = ({ options }: ActionMenuProps) => {
                                 if (option.path) router.push(option.path);
                                 setIsOpen(false);
                             }}
-                            className='text-gray-400 hover:text-gray-700'
+                            className='flex flex-col text-gray-400 hover:text-gray-700 py-0.5'
                         >
                             {option.label}
                         </button>

@@ -65,7 +65,7 @@ export default function ImportStagingTable({ data, existingIds, onConfirm, onCan
               onClick={onCancel}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors"
             >
-              <X size={24} />
+              <X size={18} />
             </button>
           </div>
         </div>

@@ -1,16 +1,21 @@
 "use client";
 
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { RefreshCw } from "lucide-react";
 
 interface SyncModalProps {
+    businessName: string;
     isOpen: boolean;
-    BusinessName: string;
     onClose: () => void;
     onConfirm: () => void;
     isLoading: boolean;
 }
 
-export const SyncSingleModal = ({ isOpen, BusinessName, onClose, onConfirm, isLoading }: SyncModalProps) => {
+export const SyncSingleModal = ({ isOpen, businessName, onClose, onConfirm, isLoading }: SyncModalProps) => {
+
+    // Lock scroll if modal is open
+      useScrollLock(!!isOpen);
+
     if (!isOpen) return null;
 
     return (
@@ -31,7 +36,7 @@ export const SyncSingleModal = ({ isOpen, BusinessName, onClose, onConfirm, isLo
                         <h3 className="text-xl font-bold text-slate-800">Location Sync</h3>
                     </div>
                     <p className="text-slate-600 leading-relaxed">
-                        Are you sure you want to publish <span className="font-semibold text-gray-800">{BusinessName}</span> location?
+                        Are you sure you want to publish <span className="font-semibold text-gray-800">{businessName}</span> location?
                         It will appear on the live map immediately.
                     </p>
                 </div>

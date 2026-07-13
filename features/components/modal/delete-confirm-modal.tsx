@@ -1,5 +1,6 @@
 "use client";
 
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { AlertTriangle, X } from "lucide-react";
 
 interface ConfirmModalProps {
@@ -7,14 +8,14 @@ interface ConfirmModalProps {
     onClose: () => void;
     onConfirm: () => void;
     isLoading?: boolean;
+    businessName: string;
 }
 
-export default function ConfirmModal({
-    isOpen,
-    onClose,
-    onConfirm,
-    isLoading
-}: ConfirmModalProps) {
+export const ConfirmModal = ({ isOpen, onClose, onConfirm, isLoading, businessName }: ConfirmModalProps) => {
+
+    // Lock scroll if modal is open
+    useScrollLock(!!isOpen);
+
     if (!isOpen) return null;
 
     return (
@@ -31,7 +32,7 @@ export default function ConfirmModal({
                         </div>
                         <h3 className="text-xl font-bold text-slate-800">Delete This Location?</h3>
                     </div>
-                    <p className="text-slate-600 leading-relaxed">This action cannot be undone. This location and its map marker will be permanently removed.</p>
+                    <p className="text-slate-600 leading-relaxed">This action cannot be undone. The <span className="font-semibold text-gray-800">{businessName}</span> location and its map marker will be permanently removed.</p>
                 </div>
 
                 <div className="flex items-center justify-end gap-3 p-4 bg-slate-50">

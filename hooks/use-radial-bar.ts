@@ -1,31 +1,38 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, query, onSnapshot, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { RadialBarData } from '@/types';
 
-export const useRadialChartData = (collectionName: string) => {
-  const [counts, setCounts] = useState<RadialBarData>({ published: 0, draft: 0, total: 0 });
+
+export const useRadialChartData = (collectionName: string, days: number) => {
+  const [counts, setCounts] = useState<RadialBarData>({ total: 0 });
 
   useEffect(() => {
-    const q = query(collection(db, collectionName));
-    
+    // Start with a base query
+    let q = query(collection(db, collectionName));
+
+    // If 'days' is provided and > 0, apply the date filter
+    if (days > 0) {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+      q = query(q, where('createdAt', '>=', Timestamp.fromDate(cutoffDate)));
+    }
+
     return onSnapshot(q, (snapshot) => {
-      let draftCount = 0;
-      let publishedCount = 0;
+      const newCounts: RadialBarData = { total: 0 };
 
       snapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.status === 'published') publishedCount++;
-        else draftCount++;
+        // Fallback to 'unknown' if status field is missing
+        const status = (data.status as string)?.toLowerCase() || 'unknown';
+
+        newCounts[status] = (newCounts[status] || 0) + 1;
+        newCounts.total++;
       });
 
-      setCounts({
-        published: publishedCount,
-        draft: draftCount,
-        total: draftCount + publishedCount
-      });
+      setCounts(newCounts);
     });
-  }, [collectionName]);
+  }, [collectionName, days]); // Dependency added here: re-runs when days change
 
   return counts;
 };

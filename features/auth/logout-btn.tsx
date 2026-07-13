@@ -1,10 +1,13 @@
 "use client";
 
 import { useAuth } from "@/context/auth-context";
+import { useSidebar } from "@/context/sidebar-context";
 import { LogOut } from "lucide-react";
 
 export const LogoutButton = () => {
     const { logout } = useAuth();
+
+    const { isSidebarOpen } = useSidebar();
 
     const handleLogout = async () => {
         try {
@@ -23,11 +26,10 @@ export const LogoutButton = () => {
         <button
             onClick={handleLogout}
             // className="flex items-center justify-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 px-5 py-2.5 rounded-lg font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
-            className="flex w-full items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors text-red-400 hover:bg-gray-50 hover:text-red-600"
-           
+            className={`flex w-full items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors text-red-400 hover:bg-gray-50 hover:text-red-600 ${!isSidebarOpen ? 'justify-center' : ''}`}
         >
             <LogOut size={18} />
-            <span>Logout</span>
+            {isSidebarOpen && <span>Logout</span>}
         </button>
     );
 };

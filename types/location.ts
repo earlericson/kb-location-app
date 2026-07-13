@@ -30,7 +30,7 @@ export interface MappedLocation {
   email: string;
   phone: string;
   websiteUrl: string;
-  status: 'draft' | 'published';
+  status: 'Draft';
   // FieldValue is for when saving (serverTimestamp), 
   // Timestamp is for when reading from Firestore
   createdAt?: Timestamp | FieldValue | string | null;

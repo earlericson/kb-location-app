@@ -1,49 +1,32 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useForm, FormProvider, useWatch, useFormState } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { BusinessSchema, BusinessFormValues } from "@/types/business";
+import { useEffect } from "react";
+import { FormProvider, useWatch, useFormState } from "react-hook-form";
+import { BusinessLocation } from "@/types/business";
 import BusinessFormFields from "./form-fields/insert-fields";
 import UpdateConfirmModal from "../components/modal/update-confirm-modal";
 
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { getCoordinates } from "@/lib/geocoding";
-import { ImageUpload } from "./form-fields/image-upload";
-import toast from "react-hot-toast";
-import { logActivity } from "@/lib/logger";
+import { useLocationActions } from "@/hooks/use-location-action";
 
 interface BusinessFormProps {
-  onSubmit: (data: BusinessFormValues) => Promise<void>;
+  // Use the specific form values schema
+  onSubmit: (data: BusinessLocation) => Promise<void>;
   isLoading: boolean;
-  defaultValues?: Partial<BusinessFormValues>;
-  businessId?: string;
+  // Use the full interface or Partial for default values
+  defaultValues?: BusinessLocation;
+  //   businessId?: string;
 }
 
-export default function BusinessForm({ onSubmit, isLoading, defaultValues, businessId }: BusinessFormProps) {
-
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [pendingData, setPendingData] = useState<BusinessFormValues | null>(null);
-
-  const methods = useForm<BusinessFormValues>({
-    resolver: zodResolver(BusinessSchema),
-    mode: "onChange",
-    defaultValues: defaultValues || {
-      address: "",
-      latitude: 0,
-      longitude: 0,
-      imageUrl: "",
-      // status: "active"
-    },
-  });
-
-  // Reset form when defaultValues changes (switching between Edit/Add)
-  useEffect(() => {
-    methods.reset(defaultValues || {});
-  }, [defaultValues, methods]);
-
-  // Disable/Enable button in the form
-  const { isValid } = methods.formState;
+export default function BusinessForm({ onSubmit, isLoading, defaultValues }: BusinessFormProps) {
+  const {
+    methods,
+    handleFormSubmit,
+    handleConfirmUpdate,
+    showUpdateModal,
+    setShowUpdateModal,
+    setPendingData,
+  } = useLocationActions(defaultValues);
 
 
   // Geocoding Map
@@ -73,61 +56,31 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues, busin
   }, [watchedAddress, dirtyFields.address, dirtyFields.latitude, setValue]);
 
 
-  const handleFormSubmit = async (data: BusinessFormValues) => {
-    const isEditMode = !!defaultValues?.businessName;
+  // Reset form when defaultValues changes (switching between Edit/Add)
+  useEffect(() => {
+    methods.reset(defaultValues || {});
+  }, [defaultValues, methods]);
 
-    if (isEditMode) {
-      setPendingData(data);
-      setShowUpdateModal(true);
-    } else {
-      // 1. Wait for the database submission to complete
-      await onSubmit(data);
+  // Disable/Enable button in the form
+  // const { isValid } = methods.formState;
 
-      // Trigger log
-      await logActivity('Created', data.businessName);
-
-      // 2. Explicitly reset the form to empty values
-      methods.reset();
-
-      toast.success("New location was added successfully!");
-    }
-  };
-
-  // This is triggered only after the user clicks "Confirm" in the modal
-  const handleConfirmUpdate = async () => {
-    if (pendingData) {
-      // We spread the existing data and explicitly set status to "draft"
-      const updatedPayload = {
-        ...pendingData,
-        isSynced: false,
-        // status: "active" as const,
-        updatedAt: new Date().toISOString() // Good for tracking when the edit happened
-      };
-
-      await onSubmit(updatedPayload);
-
-      // Trigger log
-      await logActivity('Updated', updatedPayload.businessName);
-
-      setShowUpdateModal(false);
-      setPendingData(null);
-
-      // Optional: Toast to let the user know they need to sync again
-      toast.success("The location was updated. Sync now!");
-    }
-  };
   return (
     <FormProvider {...methods}>
       <form
-        onSubmit={methods.handleSubmit(handleFormSubmit)}
+        onSubmit={methods.handleSubmit((data) => {
+          // console.log("Data submitted to form:", data); // Check if 'id' is here!
+          return handleFormSubmit(data, onSubmit);
+        })}
         className="space-y-6 bg-white"
       >
+        <input type="hidden" {...methods.register("id")} />
         <BusinessFormFields
           isLoading={isLoading}
           isEditing={!!defaultValues?.businessName}
-          businessId={businessId}
+        // businessId={businessId}
         />
       </form>
+
 
       {/* Dedicated Update Confirmation Modal */}
       <UpdateConfirmModal
@@ -136,7 +89,7 @@ export default function BusinessForm({ onSubmit, isLoading, defaultValues, busin
           setShowUpdateModal(false);
           setPendingData(null);
         }}
-        onConfirm={handleConfirmUpdate}
+        onConfirm={() => handleConfirmUpdate(onSubmit)}
         isLoading={isLoading}
       />
 

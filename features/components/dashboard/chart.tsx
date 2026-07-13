@@ -15,6 +15,17 @@ export const StatusActivityChart: React.FC<StatusActivityChartProps> = ({ data }
 
   const statusKeys = Object.keys(statusStyles) as BusinessStatus[];
 
+  const formatLegendLabel = (value: string) => {
+    const map: { [key: string]: string } = {
+      active: "Active",
+      forsale: "For Sale",
+      available: "Available",
+    };
+
+    // Return the mapped value or the original if not found
+    return map[value.toLowerCase()] || value;
+  };
+
   return (
     <div className="h-[300] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -36,7 +47,7 @@ export const StatusActivityChart: React.FC<StatusActivityChartProps> = ({ data }
           />
           <Legend
             verticalAlign="top" height={36} align="left" iconType="circle" iconSize={10}
-            wrapperStyle={{ top: '0' }}
+            wrapperStyle={{ top: '0' }} formatter={formatLegendLabel}
           />
 
           {statusKeys.map((status) => (
