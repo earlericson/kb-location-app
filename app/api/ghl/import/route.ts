@@ -66,7 +66,7 @@ export async function POST() {
         email: loc.email || '',
         phone: loc.phone || '',
         websiteUrl: loc.website || '',
-        status: 'draft'
+        status: 'Draft'
       };
     });
 
