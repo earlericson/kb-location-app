@@ -7,6 +7,11 @@ import { AdvancedMarker, Map } from "@vis.gl/react-google-maps";
 import { BusinessList } from "./components/map-list";
 import { getDistance } from "@/lib/map/distance";
 import { PlaceAutocomplete } from "./components/place-auto-complete";
+import { DirectionsManager } from "./directions-manager";
+import { StatusFilterDropdown } from "../components/global/status-filter-bar";
+
+type statusFilter = BusinessLocation["status"] | "All";
+
 
 export default function MapMain({ initialData }: { initialData: BusinessLocation[] }) {
     // const [searchQuery, setSearchQuery] = useState("");
@@ -14,7 +19,11 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
 
     const [searchLoc, setSearchLoc] = useState<{ lat: number, lng: number } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
+    const [directionDestination, setDirectionDestination] = useState<google.maps.LatLngLiteral | null>(null);
+    const [activeDirectionId, setActiveDirectionId] = useState<BusinessLocation | null>(null);
+    const [origin, setOrigin] = useState<{ lat: number; lng: number } | null>(null);
 
+    const [selectedStatuses, setSelectedStatuses] = useState<statusFilter[]>(['All']);
     // Filter businesses based on the search box
     // const filteredBusinesses = useMemo(() => {
     //     return initialData.filter((b) =>
@@ -24,20 +33,38 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
     // }, [searchQuery, initialData]);
 
 
+    // const filteredBusinesses = useMemo(() => {
+    //     // 1. If no place selected, return all locations
+    //     if (!isSearching || !searchLoc) return initialData;
+
+    //     // 2. Sort all businesses by distance from the selected coordinates
+    //     const sorted = [...initialData].sort((a, b) => {
+    //         const distA = getDistance(searchLoc.lat, searchLoc.lng, Number(a.latitude), Number(a.longitude));
+    //         const distB = getDistance(searchLoc.lat, searchLoc.lng, Number(b.latitude), Number(b.longitude));
+    //         return distA - distB;
+    //     });
+
+    //     // 3. Limit to the top 5
+    //     return sorted.slice(0, 5);
+    // }, [isSearching, searchLoc, initialData]);
     const filteredBusinesses = useMemo(() => {
-        // 1. If no place selected, return all locations
-        if (!isSearching || !searchLoc) return initialData;
+        // 1. Filter by Status first (this applies even if not searching)
+        let results = initialData.filter(b =>
+            selectedStatuses.includes('All') || selectedStatuses.includes(b.status)
+        );
 
-        // 2. Sort all businesses by distance from the selected coordinates
-        const sorted = [...initialData].sort((a, b) => {
-            const distA = getDistance(searchLoc.lat, searchLoc.lng, Number(a.latitude), Number(a.longitude));
-            const distB = getDistance(searchLoc.lat, searchLoc.lng, Number(b.latitude), Number(b.longitude));
-            return distA - distB;
-        });
+        // 2. If a search location is active, sort by distance and limit
+        if (isSearching && searchLoc) {
+            results = results.sort((a, b) => {
+                const distA = getDistance(searchLoc.lat, searchLoc.lng, Number(a.latitude), Number(a.longitude));
+                const distB = getDistance(searchLoc.lat, searchLoc.lng, Number(b.latitude), Number(b.longitude));
+                return distA - distB;
+            }).slice(0, 5); // Take the top 5 nearest from the filtered list
+        }
 
-        // 3. Limit to the top 5
-        return sorted.slice(0, 5);
-    }, [isSearching, searchLoc, initialData]);
+        return results;
+    }, [isSearching, searchLoc, initialData, selectedStatuses]); // <--- Added selectedStatuses dependency
+
 
 
 
@@ -56,17 +83,24 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
 
     // Default center (Kansas City, Missouri, USA)
     const defaultCenter = { lat: 39.100105, lng: -94.5781416 };
-    const defaultZoom = 5;
+    const defaultZoom = 4.5;
     const minZoom = 4;
     const maxZoom = 20;
     const selectedZoom = 7;
 
     // Define the absolute bounds for North and South America
-    const AMERICAS_BOUNDS = {
-        north: 85,
-        south: -60,
-        west: -170,
-        east: -30,
+    // const AMERICAS_BOUNDS = {
+    //     north: 85,
+    //     south: -60,
+    //     west: -170,
+    //     east: -30,
+    // };
+
+    const USA_BOUNDS = {
+        north: 72.0,  // Captures the northernmost point of Alaska
+        south: 18.9,  // Captures the southernmost point of Hawaii
+        west: -179.0, // Extends far west to include Hawaii
+        east: -66.0,  // Stays tight to the eastern coast of the contiguous U.S.
     };
 
     // Pull the data request in browser local storage on new window mount
@@ -161,6 +195,7 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
 
         // 1. CLEAR STATE: If both search and selection are empty, reset to default
         if (!searchLoc && !selectedLocation) {
+            mapInstance.setOptions({ restriction: { latLngBounds: USA_BOUNDS, strictBounds: true } });
             mapInstance.panTo(defaultCenter);
             mapInstance.setZoom(defaultZoom);
             return;
@@ -174,6 +209,9 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
 
         if (!target || isNaN(target.lat) || isNaN(target.lng)) return;
 
+        // This allows the animation to reach targets near the boundary
+        mapInstance.setOptions({ restriction: null });
+
         // 3. Cinematic Movement
         // Use panTo for smooth movement.
         // with Google's internal animation engine.
@@ -181,6 +219,29 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
         mapInstance.setZoom(selectedLocation ? selectedZoom : 7);
 
     }, [mapInstance, searchLoc, selectedLocation, defaultCenter, defaultZoom, selectedZoom]);
+
+
+    // This is the function that orchestrates the UI state
+    const handleStatusChange = (newStatuses: statusFilter[]) => {
+        setSelectedStatuses(newStatuses);
+
+        // Close InfoWindow if user is NOT in "All" mode
+        if (!newStatuses.includes('All')) {
+            setSelectedLocation(null);
+            setDirectionDestination(null);
+        }
+    };
+
+    const handleReset = () => {
+        // Reset the filter state to default (e.g., 'All')
+        setSelectedStatuses(['All']);
+
+        // The new requirement: explicitly close the InfoWindow
+        setSelectedLocation(null);
+
+        // Remove the map direction polyline
+        setDirectionDestination(null);
+    };
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-white">
@@ -192,29 +253,81 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
                     onChange={handleSearchChange}
                     count={filteredBusinesses.length}
                 /> */}
+                <div className="border-b border-gray-100 p-4 pb-2">
+                    <div className="flex items-center gap-3 pb-2">
+                        <PlaceAutocomplete
+                            onPlaceSelect={(loc) => {
+                                setSearchLoc(loc);
+                                setIsSearching(!!loc);
 
-                <PlaceAutocomplete
-                    onPlaceSelect={(loc) => {
-                        setSearchLoc(loc);
-                        setIsSearching(!!loc);
+                                // Reset the selected popup when searching a new location
+                                setSelectedLocation(null);
+                                // Reset the road map when searching a new location
+                                setDirectionDestination(null);
+                                // Reset selected active direction
+                                setActiveDirectionId(null);
 
-                        // Reset the selected popup when searching a new location
-                        setSelectedLocation(null);
-                    }}
-                    onInputChange={(val) => {
-                        if (!val)
-                            setIsSearching(false);
-                        // You might also want to close it here if the search is cleared
-                        setSelectedLocation(null);
-                    }}
-                    count={filteredBusinesses.length}
-                />
+                                if (loc) {
+                                    setOrigin({ lat: loc.lat, lng: loc.lng });
+                                } else {
+                                    // Optional: reset origin if the user clears the input
+                                    setOrigin(null);
+                                    setIsSearching(false);
+                                }
+                            }}
+                            onInputChange={(val) => {
+                                if (!val)
+                                    setIsSearching(false);
+                                // You might also want to close it here if the search is cleared
+                                setSelectedLocation(null);
+                                setDirectionDestination(null);
+                                setActiveDirectionId(null);
+                                setOrigin(null);
+                            }}
+                            count={filteredBusinesses.length}
+                            isSearching={isSearching}
+                        />
+                        <StatusFilterDropdown
+                            selectedStatuses={selectedStatuses}
+                            onStatusChange={handleStatusChange}
+                            onReset={handleReset}
+                        />
+
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-2 font-medium uppercase tracking-wider">
+                        {/* {isSearching ? `${filteredBusinesses.length} nearest locations found` : `${filteredBusinesses.length} Locations Found`} */}
+
+                        {isSearching
+                            ? `${filteredBusinesses.length} nearest ${filteredBusinesses.length === 1 ? 'location' : 'locations'} found`
+                            : `${filteredBusinesses.length} ${filteredBusinesses.length === 1 ? 'Location' : 'Locations'} Found`
+                        }
+                    </p>
+                </div>
 
                 <BusinessList
                     businesses={filteredBusinesses}
                     selectedId={selectedLocation?.id}
-                    onSelect={setSelectedLocation}
+                    activeDirectionId={activeDirectionId?.id}
+                    // onSelect={setSelectedLocation}
                     searchLoc={searchLoc} // Pass this down!
+                    onSelect={(loc) => {
+                        setSelectedLocation(loc);
+                        setDirectionDestination(null); // Hide roadmap when selecting from list
+                        setActiveDirectionId(null);
+                    }}
+                    onGetDirections={(loc) => {
+                        setDirectionDestination({
+                            lat: Number(loc.latitude),
+                            lng: Number(loc.longitude)
+                        });
+                        setActiveDirectionId(loc);
+                        // Close the InfoWindow
+                        setSelectedLocation(null);
+                    }}
+                    onClearDirections={() => {
+                        setDirectionDestination(null);
+                        setActiveDirectionId(null);
+                    }}
                 />
             </aside>
 
@@ -235,20 +348,38 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
 
                     // 2. Apply the restriction boundaries
                     restriction={{
-                        latLngBounds: AMERICAS_BOUNDS,
+                        latLngBounds: USA_BOUNDS,
                         strictBounds: true, // Prevents users from dragging even a little bit outside the box
                     }}
                 >
 
                     {/* <MapCameraController center={searchLoc} map={mapInstance} /> */}
 
+                    {/* Render the Route if a destination is selected */}
+                    <DirectionsManager
+                        origin={origin} // Origin is the autocomplete search result
+                        destination={directionDestination}
+                    />
+
                     {/* Render ONLY the filtered list to keep the map clean */}
                     {filteredBusinesses.map((b) => (
                         <MapContainer
                             key={b.id}
                             businessloc={b}
-                            isSelected={selectedLocation?.id === b.id}
-                            onMarkerClick={setSelectedLocation}
+                            // isSelected={selectedLocation?.id === b.id}
+                            // onMarkerClick={setSelectedLocation}
+
+                            // Only show "selected" state if no direction is active
+                            isSelected={!directionDestination && selectedLocation?.id === b.id}
+                            onMarkerClick={(loc) => {
+                                // If directions are active, clicking a marker clears them 
+                                // and selects the new location
+                                if (directionDestination) {
+                                    setDirectionDestination(null);
+                                    setActiveDirectionId(null);
+                                }
+                                setSelectedLocation(loc);
+                            }}
                         />
                     ))}
                 </Map>

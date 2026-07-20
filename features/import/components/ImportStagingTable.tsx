@@ -50,7 +50,7 @@ export default function ImportStagingTable({ data, existingIds, onConfirm, onCan
         {/* Header */}
         <div className="p-6 bg-gray-50 flex justify-between items-center border-b border-gray-200">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Review GHL Import</h3>
+            <h3 className="text-md md:text-xl font-bold text-gray-900">Review GHL Import</h3>
             <p className="text-sm text-gray-500">{selectedIds.length} of {data.length} selected for import</p>
           </div>
           <div className="flex items-center gap-3">
@@ -59,7 +59,7 @@ export default function ImportStagingTable({ data, existingIds, onConfirm, onCan
               onClick={() => onConfirm(data.filter(i => selectedIds.includes(i.ghlId)))}
               className="flex items-center gap-2 bg-amber-700 text-white px-5 py-2.5 rounded-lg font-bold disabled:opacity-50 hover:bg-amber-800 transition-all shadow-sm"
             >
-              {isSaving ? 'Importing...' : <><Import size={18} /> Import Selected</>}
+              {isSaving ? 'Importing...' : <><Import size={18} /> <span className="hidden md:inline">Import Selected</span></>}
             </button>
             <button
               onClick={onCancel}

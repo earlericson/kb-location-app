@@ -120,7 +120,7 @@ export default function DashboardPage({ onEdit, data }: BusinessTableProps) {
                                                     {/* Dot indicator */}
                                                     <span className={`w-1.5 h-1.5 mr-1.5 rounded-full ${config.dot}`}></span>
                                                     {/* {loc.status} */}
-                                                    {loc.status !== 'draft'
+                                                    {loc.status !== 'Draft'
                                                         ? (STATUS_DISPLAY_MAP[loc.status] || loc.status)
                                                         : (STATUS_DISPLAY_MAP2[loc.status] || loc.status)
                                                     }
@@ -137,7 +137,7 @@ export default function DashboardPage({ onEdit, data }: BusinessTableProps) {
                                         <td className="px-4 py-4">
                                             <div className="flex justify-end gap-1">
 
-                                                {loc.status !== 'draft' ? (
+                                                {loc.status !== 'Draft' ? (
 
                                                     loc.isSynced ? (
                                                         <button
@@ -149,7 +149,7 @@ export default function DashboardPage({ onEdit, data }: BusinessTableProps) {
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer"
+                                                            className="p-2 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer"
                                                             onClick={() => setPendingLocation(loc)}
                                                             title="Sync to Map"
                                                         >

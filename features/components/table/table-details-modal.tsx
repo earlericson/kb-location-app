@@ -124,24 +124,49 @@ export const LocationDetailsModal = ({ location, onClose, isOpen, onEdit }: Tabl
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-8 gap-x-8 grow">
                 <div>
                   <p className="text-slate-400 text-xs">Business Name</p>
-                  <p className="font-medium pt-1">{location.businessName}</p>
+                  {location.businessName ? (
+                    <p className="font-medium pt-1">{location.businessName}</p>
+                  ) : (
+                    <p className="font-medium pt-1">None</p>
+                  )}
                 </div>
+
                 <div>
                   <p className="text-slate-400 text-xs">Owner</p>
-                  <p className="font-medium pt-1">{location.businessOwner}</p>
+                  {location.businessOwner ? (
+                    <p className="font-medium pt-1">{location.businessOwner}</p>
+                  ) : (
+                    <p className="font-medium pt-1">None</p>
+                  )}
                 </div>
+
                 <div>
                   <p className="text-slate-400 text-xs">Email</p>
-                  <p className="font-medium pt-1 break-all">{location.email}</p>
+                  {location.email ? (
+                    <p className="font-medium pt-1 break-all">{location.email}</p>
+                  ) : (
+                    <p className="font-medium pt-1">None</p>
+                  )}
                 </div>
+
                 <div>
                   <p className="text-slate-400 text-xs">Phone Number</p>
-                  <p className="font-medium pt-1">{location.phone}</p>
+                  {location.phone ? (
+                    <p className="font-medium pt-1">{location.phone}</p>
+                  ) : (
+                    <p className="font-medium pt-1">None</p>
+                  )}
                 </div>
+
                 <div>
                   <p className="text-slate-400 text-xs">Address</p>
-                  <p className="font-medium pt-1">{location.address}</p>
+                  {location.address ? (
+                    <p className="font-medium pt-1">{location.address}</p>
+                  ) : (
+                    <p className="font-medium pt-1">None</p>
+                  )}
                 </div>
+
                 <div>
                   <p className="text-slate-400 text-xs">Coordinates</p>
                   <div>
@@ -158,28 +183,36 @@ export const LocationDetailsModal = ({ location, onClose, isOpen, onEdit }: Tabl
                 <div>
                   <p className="text-slate-400 text-xs">Website Url</p>
                   <div className="flex items-center justify-start gap-3 pt-1">
-                    <a
-                      href={location.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-black hover:text-violet-600 transition-colors break-all"
-                    >
-                      {location.websiteUrl}
-                    </a>
+                    {location.websiteUrl ? (
+                      <a
+                        href={location.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black hover:text-violet-600 transition-colors break-all"
+                      >
+                        {location.websiteUrl}
+                      </a>
+                    ) : (
+                      <p className="font-medium pt-1">None</p>
+                    )}
                   </div>
                 </div>
 
                 <div>
                   <p className="text-slate-400 text-xs">Content Url</p>
                   <div className="flex items-center justify-start gap-3 pt-1">
-                    <a
-                      href={location.contentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-black hover:text-violet-600 transition-colors break-all"
-                    >
-                      {location.contentUrl}
-                    </a>
+                    {location.contentUrl ? (
+                      <a
+                        href={location.contentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black hover:text-violet-600 transition-colors break-all"
+                      >
+                        {location.contentUrl}
+                      </a>
+                    ) : (
+                      <p className="font-medium pt-1">None</p>
+                    )}
                   </div>
                 </div>
 

@@ -11,7 +11,7 @@ import {
 import { BusinessLocation } from "@/types";
 import { Globe, MapPin, Phone, Mail, ExternalLink, User, Image } from "lucide-react";
 import { MapMarker } from "./components/map-marker";
-import { statusStyles } from "./components/map-marker-color";
+import { STATUS_DISPLAY_MAP, STATUS_DISPLAY_MAP2, statusStyles } from "./components/map-marker-color";
 
 interface MapProps {
   businessloc: BusinessLocation;
@@ -90,14 +90,14 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                 </InfoWindow>
 
                 {/* <div className="absolute -bottom-3 w-12 h-5 bg-[#ed1f24]/40 rounded-[50%] animate-ping pointer-events-none"></div> */}
-                <div className={`absolute -bottom-3 w-12 h-5 rounded-[50%] animate-ping pointer-events-none ${statusStyles[businessloc.status].ping}`}></div>
+                <div className={`absolute -bottom-3 w-12 h-5 rounded-[50%] animate-ping pointer-events-none z-50 ${statusStyles[businessloc.status].ping}`}></div>
               </>
 
             )}
 
             {/* Custom Styled Pin matching your dashboard theme */}
             {/* <Pin
-              background={isSelected || isHovered ? "#ea4335" : "#ea4335"}
+              background={isSelected || isHovered ? "#ed1f24" : "#ed1f24"}
               // scale={selectedLocation?.id === loc.id ? 1.3 : 1}
               borderColor={"#b31412"}
               glyphColor={"#b31412"}
@@ -155,7 +155,10 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                   {/* Status Badge */}
                   <span className={`absolute top-2 right-2 inline-flex items-center px-3 py-0.5 rounded-full text-sm font-mono leading-relaxed border shadow-sm text-white ${statusStyles[businessloc.status].dot}`}>
                     <span className={`w-1.5 h-1.5 mr-1.5 rounded-full bg-white`}></span>
-                    {businessloc.status}
+                    {businessloc.status !== 'Draft'
+                      ? (STATUS_DISPLAY_MAP[businessloc.status] || businessloc.status)
+                      : (STATUS_DISPLAY_MAP2[businessloc.status] || businessloc.status)
+                    }
                   </span>
                 </div>
 
@@ -164,7 +167,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                   {businessloc.businessName}
                 </h4>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
 
                   {/* Business Owner */}
                   {businessloc.businessOwner && (
@@ -180,7 +183,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                   {businessloc.address && (
                     <div className="flex items-start gap-2 mt-4">
                       <MapPin size={12} className="shrink-0 mt-0.5 font-bold text-gray-400" />
-                      <p className="text-[14px] text-black leading-snug">
+                      <p className="text-[14px] text-black font-normal leading-snug">
                         {businessloc.address}
                       </p>
                     </div>
@@ -192,7 +195,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                       <Mail size={12} className="shrink-0 font-bold text-gray-400" />
                       <a
                         href={`mailto:${businessloc.email}`}
-                        className="text-[14px] text-black hover:text-[#ea4335] break-all transition-colors focus-visible:outline-none"
+                        className="text-[14px] text-black font-normal hover:text-[#ed1f24] break-all transition-colors focus-visible:outline-none"
                       >
                         {businessloc.email}
                       </a>
@@ -205,7 +208,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                       <Phone size={12} className="shrink-0 font-bold text-gray-400" />
                       <a
                         href={`tel:${businessloc.phone}`}
-                        className="text-[14px] text-black hover:text-[#ea4335] transition-colors"
+                        className="text-[14px] text-black font-normal hover:text-[#ed1f24] transition-colors"
                       >
                         {businessloc.phone}
                       </a>
@@ -220,7 +223,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                         href={businessloc.websiteUrl.startsWith('http') ? businessloc.websiteUrl : `https://${businessloc.websiteUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[14px] text-black hover:text-[#ea4335] transition-colors"
+                        className="text-[14px] text-black font-normal hover:text-[#ed1f24] transition-colors"
                       >
                         {/* This regex removes http://, https://, and www. */}
                         {businessloc.websiteUrl.replace(/(^\w+:|^)\/\/(www\.)?/, '')}
@@ -234,7 +237,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
                     <div className="pt-2 border-t border-gray-100">
                       <button
                         onClick={(e) => handleContentUrl(e, businessloc.contentUrl ?? "")}
-                        className="w-full bg-black text-white uppercase text-[12px] font-bold py-2.5 px-4 hover:bg-[#2f2f2f] transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
+                        className="w-full bg-black rounded-lg text-white uppercase text-[12px] font-bold py-3 px-4 hover:bg-[#ed1f24] transition-all shadow-md shadow-gray-300 active:scale-95 flex items-center justify-center gap-2"
                       >
                         <span>Read More</span>
                         {/* Optional: Add a small arrow icon if you're using Lucide */}
