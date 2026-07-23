@@ -51,7 +51,6 @@ export const StatusFilterDropdown = ({ selectedStatuses, onStatusChange, onReset
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                // className="flex items-center p-2 border rounded-md bg-black hover:bg-[#ed1f24] transition-all border-none shadow-md"
                 className={`flex items-center p-2 border rounded-md  hover:bg-[#ed1f24] transition-all border-none shadow-md ${isOpen ? "bg-[#ed1f24]": "bg-black"}`}
             >
                 <SlidersHorizontal size={20} className="text-white" />

@@ -6,7 +6,11 @@ import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { Loader2, Lock, AlertCircle } from "lucide-react";
 
-export const LoginForm = () => {
+interface LoginFormProps {
+  onNavigateToForgot: () => void;
+}
+
+export const LoginForm = ({onNavigateToForgot}: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -98,15 +102,32 @@ export const LoginForm = () => {
           />
         </div>
 
+
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={onNavigateToForgot}
+            className="text-sm font-medium text-black hover:underline"
+          >
+            Forgot password?
+          </button>
+        </div>
+
+        {error && (
+          <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+            {error}
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full bg-black hover:opacity-90 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
               <Loader2 className="animate-spin" size={20} />
-              <span>Authenticating...</span>
+              <span>Signing in...</span>
             </>
           ) : (
             "Sign In"

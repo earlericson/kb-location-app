@@ -229,6 +229,7 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
         if (!newStatuses.includes('All')) {
             setSelectedLocation(null);
             setDirectionDestination(null);
+            setActiveDirectionId(null);
         }
     };
 
@@ -241,6 +242,9 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
 
         // Remove the map direction polyline
         setDirectionDestination(null);
+
+        // Reset selected active direction
+        setActiveDirectionId(null);
     };
 
     return (
