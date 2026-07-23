@@ -34,7 +34,7 @@ export const LoginForm = ({onNavigateToForgot}: LoginFormProps) => {
       router.push("/");
       router.refresh();
     } catch (err: any) {
-      console.error("Login error:", err);
+      // console.error("Login error:", err);
       // Friendly error messages for common Firebase issues
       if (err.code === "auth/invalid-credential") {
         setError("Invalid email or password. Please try again.");
@@ -112,12 +112,6 @@ export const LoginForm = ({onNavigateToForgot}: LoginFormProps) => {
             Forgot password?
           </button>
         </div>
-
-        {error && (
-          <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
-            {error}
-          </div>
-        )}
 
         <button
           type="submit"

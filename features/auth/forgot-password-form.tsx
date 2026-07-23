@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getAuth, sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
 import { Loader2, Lock, AlertCircle, MoveLeft } from "lucide-react";
+import { auth } from "@/lib/firebase";
 
 interface ForgotPasswordProps {
     onBackToLogin: () => void;
@@ -15,28 +16,53 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordProps) => {
     const [error, setError] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setMessage('');
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     setError('');
+    //     setMessage('');
 
-        if (!email) {
-            setError('Please enter your email address.');
-            return;
-        }
+    //     if (!email) {
+    //         setError('Please enter your email address.');
+    //         return;
+    //     }
+
+    //     try {
+    //         setLoading(true);
+    //         const auth = getAuth();
+    //         await sendPasswordResetEmail(auth, email);
+    //         setMessage('If an account exists with this email, a password reset link has been sent.');
+    //         setIsSubmitted(true);
+    //     } catch (err: any) {
+    //         if (err.code === 'auth/user-not-found') {
+    //             setError('No account found with this email address.');
+    //         } else {
+    //             setError(err.message || 'Failed to send reset email.');
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    const handleResetRequest = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage("");
+        setError("");
 
         try {
-            setLoading(true);
-            const auth = getAuth();
-            await sendPasswordResetEmail(auth, email);
-            setMessage('If an account exists with this email, a password reset link has been sent.');
+            const actionCodeSettings = {
+                // Dynamically uses http://localhost:3000/auth/reset-password locally 
+                // and your https://your-app.vercel.app/auth/reset-password on production!
+                url: `${window.location.origin}/reset-password`,
+                handleCodeInApp: true,
+            };
+
+            await sendPasswordResetEmail(auth, email, actionCodeSettings);
+            setMessage("If an account exists with this email, a password reset link has been sent.");
             setIsSubmitted(true);
         } catch (err: any) {
-            if (err.code === 'auth/user-not-found') {
-                setError('No account found with this email address.');
-            } else {
-                setError(err.message || 'Failed to send reset email.');
-            }
+            console.error("Error sending password reset email:", err);
+            setError(err.message || "Failed to send reset email. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -64,8 +90,19 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordProps) => {
                 </p>
             </div>
 
+            {message && (
+                <div className="p-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
+                    {message}
+                </div>
+            )}
+            {error && (
+                <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                    {error}
+                </div>
+            )}
+
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleResetRequest} className="space-y-5">
 
                 {!isSubmitted && (
                     <div className="space-y-1.5">
@@ -81,17 +118,6 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordProps) => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                    </div>
-                )}
-
-                {message && (
-                    <div className="p-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
-                        {message}
-                    </div>
-                )}
-                {error && (
-                    <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
-                        {error}
                     </div>
                 )}
 
