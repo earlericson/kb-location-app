@@ -9,6 +9,7 @@ import { getDistance } from "@/lib/map/distance";
 import { PlaceAutocomplete } from "./components/place-auto-complete";
 import { DirectionsManager } from "./directions-manager";
 import { StatusFilterDropdown } from "../components/global/status-filter-bar";
+import { Menu, X } from "lucide-react";
 
 type statusFilter = BusinessLocation["status"] | "All";
 
@@ -24,6 +25,8 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
     const [origin, setOrigin] = useState<{ lat: number; lng: number } | null>(null);
 
     const [selectedStatuses, setSelectedStatuses] = useState<statusFilter[]>(['All']);
+
+    const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true);
     // Filter businesses based on the search box
     // const filteredBusinesses = useMemo(() => {
     //     return initialData.filter((b) =>
@@ -248,10 +251,25 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
     };
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-white">
+        <div className="relative flex flex-col md:flex-row h-screen w-full overflow-hidden bg-white">
+
+            {/* Mobile/Tablet Drawer Toggle Button (Visible only on smaller screens) */}
+            <button
+                onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                className="absolute top-4 left-4 z-50 md:hidden bg-white p-2.5 rounded-lg shadow-md text-slate-700 hover:bg-slate-50 transition-colors"
+                aria-label="Toggle Business Directory"
+            >
+                {isDrawerOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+
 
             {/* LEFT COLUMN: Search & List */}
-            <aside className="w-70 flex-none flex flex-col bg-white z-10 shadow-xl">
+            <aside
+                // className="w-70 flex-none flex flex-col bg-white z-10 shadow-xl"
+                className={`absolute md:relative z-40 h-full bg-white shadow-xl md:shadow-none transition-transform duration-300 ease-in-out flex flex-col w-80 sm:w-96 md:w-[400lvw] md:max-w-xs
+                ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                `}
+            >
                 {/* <SearchBar
                     query={searchQuery}
                     onChange={handleSearchChange}
@@ -335,8 +353,18 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
                 />
             </aside>
 
+            {/* Backdrop overlay for mobile when drawer is open */}
+            {isDrawerOpen && (
+                <div
+                    onClick={() => setIsDrawerOpen(false)}
+                    className="fixed inset-0 z-30 bg-black/40 backdrop-blur-xs md:hidden transition-opacity"
+
+                />
+            )}
+
             {/* RIGHT COLUMN: The Map */}
-            <div className="flex-1 relative bg-gray-100">
+            {/* Main Map Section (Auto-fits remaining width & height) */}
+            <div className="flex grow h-full w-full relative bg-gray-100">
                 <Map
                     defaultCenter={defaultCenter}
                     defaultZoom={defaultZoom}

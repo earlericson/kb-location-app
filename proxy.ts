@@ -10,7 +10,7 @@ export function proxy(request: NextRequest) {
 
   // 2. Define public paths that DON'T need a login (like the login page itself)
   const isPublicPath = pathname === '/login';
-  const isPublicMapRoute = pathname === '/map' || pathname === '/reset-password' || pathname.startsWith('/public');
+  const isPublicMapRoute = pathname === '/map' || pathname.startsWith('/public');
 
   // 3. If there is no session and the user is trying to access a private page
   if (!session && !isPublicPath && !isPublicMapRoute) {

@@ -4,15 +4,16 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { Loader2, Lock, AlertCircle } from "lucide-react";
+import { Loader2, Lock, AlertCircle, EyeOff, Eye } from "lucide-react";
 
 interface LoginFormProps {
   onNavigateToForgot: () => void;
 }
 
-export const LoginForm = ({onNavigateToForgot}: LoginFormProps) => {
+export const LoginForm = ({ onNavigateToForgot }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -48,6 +49,10 @@ export const LoginForm = ({onNavigateToForgot}: LoginFormProps) => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
   return (
     <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
       {/* Header Section */}
@@ -81,7 +86,7 @@ export const LoginForm = ({onNavigateToForgot}: LoginFormProps) => {
             type="email"
             autoComplete="email"
             className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder:text-gray-400"
-            placeholder="admin@example.com"
+            placeholder="quinn@knockerball.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -91,15 +96,29 @@ export const LoginForm = ({onNavigateToForgot}: LoginFormProps) => {
           <label className="text-sm font-semibold text-gray-700 ml-1">
             Password
           </label>
-          <input
-            required
-            type="password"
-            autoComplete="current-password"
-            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder:text-gray-400"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              required
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder:text-gray-400"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
+            </button>
+          </div>
         </div>
 
 

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { getAuth, sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
 import { Loader2, Lock, AlertCircle, MoveLeft } from "lucide-react";
-import { auth } from "@/lib/firebase";
 
 interface ForgotPasswordProps {
     onBackToLogin: () => void;
@@ -16,53 +15,28 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordProps) => {
     const [error, setError] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // const handleSubmit = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     setError('');
-    //     setMessage('');
-
-    //     if (!email) {
-    //         setError('Please enter your email address.');
-    //         return;
-    //     }
-
-    //     try {
-    //         setLoading(true);
-    //         const auth = getAuth();
-    //         await sendPasswordResetEmail(auth, email);
-    //         setMessage('If an account exists with this email, a password reset link has been sent.');
-    //         setIsSubmitted(true);
-    //     } catch (err: any) {
-    //         if (err.code === 'auth/user-not-found') {
-    //             setError('No account found with this email address.');
-    //         } else {
-    //             setError(err.message || 'Failed to send reset email.');
-    //         }
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
-    const handleResetRequest = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setMessage("");
-        setError("");
+        setError('');
+        setMessage('');
+
+        if (!email) {
+            setError('Please enter your email address.');
+            return;
+        }
 
         try {
-            const actionCodeSettings = {
-                // Dynamically uses http://localhost:3000/auth/reset-password locally 
-                // and your https://your-app.vercel.app/auth/reset-password on production!
-                url: `${window.location.origin}/reset-password`,
-                handleCodeInApp: true,
-            };
-
-            await sendPasswordResetEmail(auth, email, actionCodeSettings);
-            setMessage("If an account exists with this email, a password reset link has been sent.");
+            setLoading(true);
+            const auth = getAuth();
+            await sendPasswordResetEmail(auth, email);
+            setMessage('If an account exists with this email, a password reset link has been sent.');
             setIsSubmitted(true);
         } catch (err: any) {
-            console.error("Error sending password reset email:", err);
-            setError(err.message || "Failed to send reset email. Please try again.");
+            if (err.code === 'auth/user-not-found') {
+                setError('No account found with this email address.');
+            } else {
+                setError(err.message || 'Failed to send reset email.');
+            }
         } finally {
             setLoading(false);
         }
@@ -101,8 +75,9 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordProps) => {
                 </div>
             )}
 
+
             {/* Login Form */}
-            <form onSubmit={handleResetRequest} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
 
                 {!isSubmitted && (
                     <div className="space-y-1.5">
@@ -114,7 +89,7 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordProps) => {
                             type="email"
                             autoComplete="email"
                             className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder:text-gray-400"
-                            placeholder="admin@example.com"
+                            placeholder="quinn@knockerball.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
