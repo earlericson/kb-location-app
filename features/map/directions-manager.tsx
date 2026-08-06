@@ -1,89 +1,105 @@
-import { useEffect, useRef, useState } from 'react';
-import { useMap, useMapsLibrary, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
-import { User } from 'lucide-react';
-
-type LatLng = google.maps.LatLng | google.maps.LatLngLiteral;
+import { useEffect, useRef } from 'react';
+import { AdvancedMarker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 
 interface DirectionsManagerProps {
-    origin: LatLng | null;
-    destination: LatLng | null;
+    origin: google.maps.LatLngLiteral | null;
+    destination: google.maps.LatLngLiteral | null;
 }
 
 export const DirectionsManager = ({ origin, destination }: DirectionsManagerProps) => {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
-    const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
-    const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
 
-    // Ref to track the manual polyline for clean-up
-    const manualPolylineRef = useRef<google.maps.Polyline | null>(null);
+    // We only need one ref to track whichever line (route or fallback) is active
+    const activePolyline = useRef<google.maps.Polyline | null>(null);
 
     useEffect(() => {
-        if (!routesLibrary || !map) return;
+        // Wait until the map and the routing library are fully loaded
+        if (!routesLibrary || !map || !origin || !destination) return;
 
-        const service = new routesLibrary.DirectionsService();
-        const renderer = new routesLibrary.DirectionsRenderer({
-            map,
-            suppressMarkers: true,
-            polylineOptions: {
-                strokeColor: '#ed1f24', // Tailwind red-500
-                strokeWeight: 3,
-                strokeOpacity: 0.8,
-            }
-        });
-
-        setDirectionsService(service);
-        setDirectionsRenderer(renderer);
-
-        return () => {
-            renderer.setMap(null);
-            if (manualPolylineRef.current) manualPolylineRef.current.setMap(null);
-        };
-    }, [routesLibrary, map]);
-
-    useEffect(() => {
-        // 1. Always clean up previous visuals first
-        if (directionsRenderer) directionsRenderer.setMap(null);
-        if (manualPolylineRef.current) {
-            manualPolylineRef.current.setMap(null);
-            manualPolylineRef.current = null;
+        // 1. Cleanup previous polyline before fetching a new one
+        if (activePolyline.current) {
+            activePolyline.current.setMap(null);
+            activePolyline.current = null;
         }
 
-        if (!directionsService || !directionsRenderer || !origin || !destination || !map) return;
+        const fetchRoute = async () => {
+            try {
+                // Import the modern Routes library
+                const { Route } = (await google.maps.importLibrary('routes')) as google.maps.RoutesLibrary;
 
-        // 2. Attempt standard driving route
-        directionsService.route(
-            {
-                origin,
-                destination,
-                travelMode: google.maps.TravelMode.DRIVING,
-            },
-            (result, status) => {
-                if (status === 'OK') {
-                    directionsRenderer.setMap(map);
-                    directionsRenderer.setDirections(result);
-                } else if (status === google.maps.DirectionsStatus.ZERO_RESULTS) {
-                    // 3. Fallback: Draw straight geodesic line
-                    manualPolylineRef.current = new google.maps.Polyline({
-                        path: [origin, destination],
-                        geodesic: true,
-                        strokeColor: '#ed1f24',
-                        strokeWeight: 3,
-                        strokeOpacity: 0.8,
-                        map: map,
-                    });
+                // Fully type-safe ComputeRoutesRequest request object
+                const request: google.maps.routes.ComputeRoutesRequest = {
+                    origin: {
+                        location: origin, // Passed directly as LatLngLiteral
+                    },
+                    destination: {
+                        location: destination, // Passed directly as LatLngLiteral
+                    },
+                    travelMode: 'DRIVING', // Correct enum string value
+                    fields: ['path', 'viewport'], // Required field mask for the Routes API
+                };
 
-                    // 4. Adjust camera to fit both points
-                    const bounds = new google.maps.LatLngBounds();
-                    bounds.extend(origin);
-                    bounds.extend(destination);
-                    map.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+                const response = await Route.computeRoutes(request);
+
+                if (response && response.routes && response.routes.length > 0) {
+                    const route = response.routes[0];
+                    
+                    // Directly access the route's path coordinates requested via the field mask
+                    const roadPath = route.path;
+
+                    if (roadPath && roadPath.length > 0) {
+                        activePolyline.current = new google.maps.Polyline({
+                            path: roadPath, // Follows the exact road curves
+                            strokeColor: '#ed1f24', // Tailwind red-500
+                            strokeWeight: 4,
+                            strokeOpacity: 0.8,
+                            map: map,
+                        });
+                    } else {
+                        triggerFallbackLine();
+                        return;
+                    }
+
+                    // Automatically adjust camera viewport to fit the route geometry bounds
+                    const viewport = route.viewport;
+                    if (viewport) {
+                        map.fitBounds(viewport, { top: 50, bottom: 50, left: 50, right: 50 });
+                    }
                 } else {
-                    console.error(`Directions request failed: ${status}`);
+                    triggerFallbackLine();
                 }
+            } catch (error) {
+                console.warn('Routes API failed, falling back to straight line:', error);
+                triggerFallbackLine();
             }
-        );
-    }, [directionsService, directionsRenderer, origin, destination, map]);
+        };
+
+        const triggerFallbackLine = () => {
+            activePolyline.current = new google.maps.Polyline({
+                path: [origin, destination],
+                geodesic: true,
+                strokeColor: '#ed1f24',
+                strokeWeight: 3,
+                strokeOpacity: 0.8,
+                map: map,
+            });
+
+            const bounds = new google.maps.LatLngBounds();
+            bounds.extend(origin);
+            bounds.extend(destination);
+            map.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+        };
+
+        fetchRoute();
+
+        // Cleanup on unmount or when origin/destination changes
+        return () => {
+            if (activePolyline.current) {
+                activePolyline.current.setMap(null);
+            }
+        };
+    }, [routesLibrary, map, origin, destination]);
 
     return (
         <>

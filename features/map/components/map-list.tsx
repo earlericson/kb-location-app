@@ -87,7 +87,7 @@ export const BusinessList = ({ businesses, selectedId, onSelect, searchLoc, onGe
                                             e.stopPropagation(); // Prevents triggering the card's onClick
                                             onGetDirections(loc); // Call your direction handler
                                         }}
-                                        className={`flex items-center gap-1 px-3 py-1.5 mt-3 text-[11px] font-semibold text-white hover:bg-[#ed1f24] rounded-lg shadow-md shadow-gray-300 ${(activeDirectionId === loc.id) ? "bg-[#ed1f24]" : "bg-black"
+                                        className={`flex items-center gap-1 px-3 py-1.5 mt-3 text-[11px] font-semibold text-white hover:bg-[#ed1f24] rounded-lg shadow-md shadow-gray-300 transition-all ${(activeDirectionId === loc.id) ? "bg-[#ed1f24]" : "bg-black"
                                             }`}
                                     >
                                         <CornerUpRight size={12} />

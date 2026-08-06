@@ -9,7 +9,7 @@ import { getDistance } from "@/lib/map/distance";
 import { PlaceAutocomplete } from "./components/place-auto-complete";
 import { DirectionsManager } from "./directions-manager";
 import { StatusFilterDropdown } from "../components/global/status-filter-bar";
-import { Menu, X } from "lucide-react";
+import { ChevronLeft, Menu } from "lucide-react";
 
 type statusFilter = BusinessLocation["status"] | "All";
 
@@ -19,7 +19,7 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
     const [selectedLocation, setSelectedLocation] = useState<BusinessLocation | null>(null);
 
     const [searchLoc, setSearchLoc] = useState<{ lat: number, lng: number } | null>(null);
-    const [isSearching, setIsSearching] = useState(false);
+    // const [isSearching, setIsSearching] = useState(false);
     const [directionDestination, setDirectionDestination] = useState<google.maps.LatLngLiteral | null>(null);
     const [activeDirectionId, setActiveDirectionId] = useState<BusinessLocation | null>(null);
     const [origin, setOrigin] = useState<{ lat: number; lng: number } | null>(null);
@@ -50,24 +50,23 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
     //     // 3. Limit to the top 5
     //     return sorted.slice(0, 5);
     // }, [isSearching, searchLoc, initialData]);
+    // 1. Unified filtering and proximity sorting memo
     const filteredBusinesses = useMemo(() => {
-        // 1. Filter by Status first (this applies even if not searching)
         let results = initialData.filter(b =>
             selectedStatuses.includes('All') || selectedStatuses.includes(b.status)
         );
 
-        // 2. If a search location is active, sort by distance and limit
-        if (isSearching && searchLoc) {
+        // If searchLoc coordinates are active, sort by proximity and take top 5
+        if (searchLoc) {
             results = results.sort((a, b) => {
                 const distA = getDistance(searchLoc.lat, searchLoc.lng, Number(a.latitude), Number(a.longitude));
                 const distB = getDistance(searchLoc.lat, searchLoc.lng, Number(b.latitude), Number(b.longitude));
                 return distA - distB;
-            }).slice(0, 5); // Take the top 5 nearest from the filtered list
+            }).slice(0, 5);
         }
 
         return results;
-    }, [isSearching, searchLoc, initialData, selectedStatuses]); // <--- Added selectedStatuses dependency
-
+    }, [searchLoc, initialData, selectedStatuses]);
 
 
 
@@ -250,76 +249,92 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
         setActiveDirectionId(null);
     };
 
+
     return (
         <div className="relative flex flex-col md:flex-row h-screen w-full overflow-hidden bg-white">
 
             {/* Mobile/Tablet Drawer Toggle Button (Visible only on smaller screens) */}
-            <button
-                onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                className="absolute top-4 left-4 z-50 md:hidden bg-white p-2.5 rounded-lg shadow-md text-slate-700 hover:bg-slate-50 transition-colors"
-                aria-label="Toggle Business Directory"
-            >
-                {isDrawerOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-
+            {!isDrawerOpen && (
+                <button
+                    onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                    className="absolute top-4 left-4 z-50 md:hidden bg-white p-2.5 rounded-lg shadow-md text-slate-700 hover:bg-slate-50 transition-colors"
+                    aria-label="Toggle Business Directory"
+                >
+                    <Menu size={20} />
+                </button>
+            )}
 
             {/* LEFT COLUMN: Search & List */}
             <aside
                 // className="w-70 flex-none flex flex-col bg-white z-10 shadow-xl"
-                className={`absolute md:relative z-40 h-full bg-white shadow-xl md:shadow-none transition-transform duration-300 ease-in-out flex flex-col w-80 sm:w-96 md:w-[400lvw] md:max-w-xs
+                className={`absolute md:relative z-40 h-full bg-white shadow-xl md:shadow-none transition-transform duration-300 ease-in-out flex flex-col w-1/3 min-w-70 max-w-md md:max-w-none
                 ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
                 `}
             >
+                {/* Floating Close Button: Centered vertically on the right border, mobile only */}
+
+                {isDrawerOpen && (
+                    <button
+                        onClick={() => setIsDrawerOpen(false)}
+                        className="absolute -right-4 top-1/2 -translate-y-1/2 z-50 md:hidden bg-white text-slate-700 p-2 rounded-full shadow-lg border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-all"
+                        aria-label="Close Drawer"
+                    >
+                        <ChevronLeft size={18} />
+                    </button>
+                )}
                 {/* <SearchBar
                     query={searchQuery}
                     onChange={handleSearchChange}
                     count={filteredBusinesses.length}
                 /> */}
                 <div className="border-b border-gray-100 p-4 pb-2">
-                    <div className="flex items-center gap-3 pb-2">
-                        <PlaceAutocomplete
-                            onPlaceSelect={(loc) => {
-                                setSearchLoc(loc);
-                                setIsSearching(!!loc);
+                    <div className="flex items-center gap-3 pb-2 w-full">
+                        <div className="flex-1 min-w-0">
+                            <PlaceAutocomplete
+                                onPlaceSelect={(loc) => {
+                                    setSearchLoc(loc);
+                                    // setIsSearching(!!loc);
 
-                                // Reset the selected popup when searching a new location
-                                setSelectedLocation(null);
-                                // Reset the road map when searching a new location
-                                setDirectionDestination(null);
-                                // Reset selected active direction
-                                setActiveDirectionId(null);
+                                    // Reset the selected popup when searching a new location
+                                    setSelectedLocation(null);
+                                    // Reset the road map when searching a new location
+                                    setDirectionDestination(null);
+                                    // Reset selected active direction
+                                    setActiveDirectionId(null);
 
-                                if (loc) {
-                                    setOrigin({ lat: loc.lat, lng: loc.lng });
-                                } else {
-                                    // Optional: reset origin if the user clears the input
+                                    if (loc) {
+                                        setOrigin({ lat: loc.lat, lng: loc.lng });
+                                    } else {
+                                        // Optional: reset origin if the user clears the input
+                                        setOrigin(null);
+                                        // setIsSearching(false);
+                                    }
+                                }}
+                                onInputChange={(val) => {
+                                    if (!val) {
+                                        setSearchLoc(null);
+                                    }
+                                    // setIsSearching(false);
+                                    // You might also want to close it here if the search is cleared
+                                    setSelectedLocation(null);
+                                    setDirectionDestination(null);
+                                    setActiveDirectionId(null);
                                     setOrigin(null);
-                                    setIsSearching(false);
-                                }
-                            }}
-                            onInputChange={(val) => {
-                                if (!val)
-                                    setIsSearching(false);
-                                // You might also want to close it here if the search is cleared
-                                setSelectedLocation(null);
-                                setDirectionDestination(null);
-                                setActiveDirectionId(null);
-                                setOrigin(null);
-                            }}
-                            count={filteredBusinesses.length}
-                            isSearching={isSearching}
-                        />
-                        <StatusFilterDropdown
-                            selectedStatuses={selectedStatuses}
-                            onStatusChange={handleStatusChange}
-                            onReset={handleReset}
-                        />
-
+                                }}
+                            // count={filteredBusinesses.length}
+                            // isSearching={isSearching}
+                            />
+                        </div>
+                        <div className="shrink-0">
+                            <StatusFilterDropdown
+                                selectedStatuses={selectedStatuses}
+                                onStatusChange={handleStatusChange}
+                                onReset={handleReset}
+                            />
+                        </div>
                     </div>
                     <p className="text-[11px] text-gray-400 mt-2 font-medium uppercase tracking-wider">
-                        {/* {isSearching ? `${filteredBusinesses.length} nearest locations found` : `${filteredBusinesses.length} Locations Found`} */}
-
-                        {isSearching
+                        {searchLoc
                             ? `${filteredBusinesses.length} nearest ${filteredBusinesses.length === 1 ? 'location' : 'locations'} found`
                             : `${filteredBusinesses.length} ${filteredBusinesses.length === 1 ? 'Location' : 'Locations'} Found`
                         }
@@ -336,6 +351,7 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
                         setSelectedLocation(loc);
                         setDirectionDestination(null); // Hide roadmap when selecting from list
                         setActiveDirectionId(null);
+                        setIsDrawerOpen(false);
                     }}
                     onGetDirections={(loc) => {
                         setDirectionDestination({
@@ -345,6 +361,8 @@ export default function MapMain({ initialData }: { initialData: BusinessLocation
                         setActiveDirectionId(loc);
                         // Close the InfoWindow
                         setSelectedLocation(null);
+                        // Close the Sidebar Drawer
+                        setIsDrawerOpen(false);
                     }}
                     onClearDirections={() => {
                         setDirectionDestination(null);

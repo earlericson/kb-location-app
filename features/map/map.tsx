@@ -133,7 +133,7 @@ export const MapContainer = ({ businessloc, onMarkerClick, isSelected }: MapProp
               onCloseClick={() => onMarkerClick(null)}
               pixelOffset={infoWindowOffset}
             >
-              <div className="pl-2 pr-1 pb-2 w-70">
+              <div className="pl-2 pr-1 pb-2 w-full md:w-70">
                 <div className="relative w-full h-40 rounded-lg overflow-hidden mb-5">
                   {/* Location Image */}
                   {businessloc.imageUrl ? (

@@ -1,70 +1,94 @@
+import React, { useEffect, useRef } from 'react';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
-import { Search } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   onPlaceSelect: (location: { lat: number; lng: number } | null) => void;
   onInputChange?: (value: string) => void;
-  count: number;
-  isSearching: boolean;
 }
 
-export const PlaceAutocomplete = ({ onPlaceSelect, onInputChange, count, isSearching }: Props) => {
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+interface PlaceSelectEvent extends Event {
+  placePrediction?: {
+    toPlace: () => google.maps.places.Place;
+  };
+}
+
+export const PlaceAutocomplete = ({ onPlaceSelect, onInputChange }: Props) => {
+  const autocompleteRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const places = useMapsLibrary('places');
 
+  // STABILITY FIX: Store your callbacks in a ref to prevent unnecessary effect teardowns
+  const callbacks = useRef({ onPlaceSelect, onInputChange });
   useEffect(() => {
-    if (!places || !inputRef.current) return;
-    const options = { fields: ['geometry', 'name', 'formatted_address'] };
-    setAutocomplete(new places.Autocomplete(inputRef.current, options));
-  }, [places]);
+    callbacks.current = { onPlaceSelect, onInputChange };
+  }, [onPlaceSelect, onInputChange]);
 
   useEffect(() => {
-    if (!autocomplete) return;
-    const listener = autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      const lat = place.geometry?.location?.lat();
-      const lng = place.geometry?.location?.lng();
-      if (lat !== undefined && lng !== undefined) {
-        onPlaceSelect({ lat, lng });
+    // Clean guard clause without the orphaned inputRef
+    if (!places || !autocompleteRef.current) return;
+
+    const el = autocompleteRef.current;
+    el.includedRegionCodes = ['US'];
+    el.placeholder = "Search address...";
+
+    const handlePlaceSelect = async (e: Event) => {
+      const placeEvent = e as PlaceSelectEvent;
+      const prediction = placeEvent.placePrediction;
+
+      if (!prediction) {
+        callbacks.current.onPlaceSelect(null);
+        if (callbacks.current.onInputChange) callbacks.current.onInputChange("");
+        return;
       }
-    });
-    return () => google.maps.event.removeListener(listener);
-  }, [autocomplete, onPlaceSelect]);
 
-  useEffect(() => {
-    if (!places || !inputRef.current) return;
+      const place = prediction.toPlace();
 
-    // Added componentRestrictions to filter for 'us'
-    const options = {
-      fields: ['geometry', 'name', 'formatted_address'],
-      componentRestrictions: { country: 'us' }
+      try {
+        await place.fetchFields({ fields: ['location'] });
+        const location = place.location;
+        if (!location) return;
+
+        const lat = location.lat();
+        const lng = location.lng();
+
+        if (lat !== undefined && lng !== undefined) {
+          callbacks.current.onPlaceSelect({ lat, lng });
+        }
+      } catch (error) {
+        console.error("Error fetching place details:", error);
+      }
     };
 
-    setAutocomplete(new places.Autocomplete(inputRef.current, options));
+    // Listen to input events on the web component to catch when the user clears text or clicks the "X" icon
+    const handleInputClear = () => {
+      setTimeout(() => {
+        // Check if the component's internal value is empty
+        if (!el.value || el.value === "") {
+          if (callbacks.current.onInputChange) callbacks.current.onInputChange("");
+          callbacks.current.onPlaceSelect(null);
+        }
+      }, 10);
+    };
+
+    // Attach listeners directly to the web component
+    el.addEventListener('gmp-select', handlePlaceSelect);
+    el.addEventListener('input', handleInputClear);
+    el.addEventListener('click', handleInputClear);
+    el.addEventListener('keyup', handleInputClear);
+
+    return () => {
+      el.removeEventListener('gmp-select', handlePlaceSelect);
+      el.removeEventListener('input', handleInputClear);
+      el.addEventListener('click', handleInputClear);
+      el.addEventListener('keyup', handleInputClear);
+    };
   }, [places]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onInputChange) onInputChange(e.target.value);
-    if (e.target.value === "") onPlaceSelect(null);
-  };
-
   return (
-    <>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-        <input
-          type="text"
-          ref={inputRef}
-          onChange={handleInputChange}
-          placeholder="Search Address..."
-          className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-md text-black font-semibold placeholder-slate-500 transition-all"
-        />
-      </div>
-      {/* <p className="text-[11px] text-gray-400 mt-2 font-medium uppercase tracking-wider">
-        {isSearching ? `${count} nearest locations found` : `${count} Locations Found`}
-      </p> */}
-    </>
+    <div className="relative w-full max-w-md">
+      <gmp-place-autocomplete
+        ref={autocompleteRef}
+        className="w-full bg-gray-50 border border-gray-200 rounded-xl outline-none text-md text-black font-semibold placeholder-slate-500 transition-all"
+      />
+    </div>
   );
 };
